@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL数据库信息统计表 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL数据库信息统计表 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL数据库信息统计表" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="MySQL在执行sql时，会使用统计信息进行判断，采用最优（cost花费最低）的执行计划，而这些统计信息是怎么进行的，在用户角度如何去调整或者理解统计信息呢？" />
+<meta property="og:description" content="MySQL在执行sql时，会使用统计信息进行判断，采用最优（cost花费最低）的执行计划，而这些统计信息是怎么进行的，在用户角度如何去调整或者理解统计信息呢？" />
+<link rel="canonical" href="http://localhost:4000/index.php/2019/09/mysql-statistic-tables/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2019/09/mysql-statistic-tables/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-09-18T09:55:49+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2019/09/mysql-statistic-tables/","headline":"MySQL数据库信息统计表","dateModified":"2019-09-18T09:55:49+08:00","datePublished":"2019-09-18T09:55:49+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2019/09/mysql-statistic-tables/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"MySQL在执行sql时，会使用统计信息进行判断，采用最优（cost花费最低）的执行计划，而这些统计信息是怎么进行的，在用户角度如何去调整或者理解统计信息呢？","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL数据库信息统计表&url=http://localhost:4000/index.php/2019/09/mysql-statistic-tables/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2019/09/mysql-statistic-tables/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2019/09/mysql-statistic-tables/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL数据库信息统计表</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <h1 id="前言">前言</h1>
+
+<p>聊聊MySQL数据库中的统计信息，众所周知，MySQL在执行sql时，会使用统计信息进行判断，采用最优（cost花费最低）的执行计划，而这些统计信息是怎么进行的，在用户角度如何去调整或者理解统计信息呢？<br />
+<a href="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-181.jpg"><img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-181.jpg" alt="" /></a></p>
+
+<blockquote>
+  <p>本次演示使用的MySQL版本：<strong>8.0.12</strong></p>
+</blockquote>
+
+<h1 id="innodb_table_stats-和-innodb_index_stats">innodb_table_stats 和 innodb_index_stats</h1>
+
+<p>innodb_table_stats和innodb_index_stats都是在MySQL实例中的mysql数据库下的表，分别存储表和索引级别的统计信息。<br />
+<strong>innodb_table_stats的字段说明</strong>：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Column name</th>
+      <th>Description</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">database_name</td>
+      <td>Database name</td>
+      <td>数据库名</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">table_name</td>
+      <td>Table name, partition name, or subpartition name</td>
+      <td>表名</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">last_update</td>
+      <td>A timestamp indicating the last time that InnoDB updated this row</td>
+      <td>最后更新时间</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">n_rows</td>
+      <td>The number of rows in the table</td>
+      <td>表的行数(估值)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">clustered_index_size</td>
+      <td>The size of the primary index, in pages</td>
+      <td>聚集索引页数</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">sum_of_other_index_sizes</td>
+      <td>The total size of other (non-primary) indexes, in pages</td>
+      <td>二级索引页数</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>参考MySQL官方文档</p>
+
+<h2 id="innodb_table_stats示例">innodb_table_stats示例：</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre>mysql&gt; select * from mysql.innodb_table_stats where database_name='wstest';
++---------------+-------------+---------------------+----------+----------------------+--------------------------+
+| database_name | table_name  | last_update         | n_rows   | clustered_index_size | sum_of_other_index_sizes |
++---------------+-------------+---------------------+----------+----------------------+--------------------------+
+| wstest        | mul_replace | 2018-11-13 22:01:58 |        2 |                    1 |                        1 |
+| wstest        | rdslist     | 2018-11-16 10:30:52 |      324 |                    5 |                        0 |
+| wstest        | t1          | 2019-03-12 14:13:33 |        8 |                    1 |                        1 |
+| wstest        | t2          | 2018-11-27 11:39:08 |       10 |                    1 |                        1 |
+| wstest        | t3          | 2018-12-12 14:52:23 |   302472 |                  865 |                        0 |
+| wstest        | t4          | 2018-12-12 15:07:34 |  4155228 |                21043 |                        0 |
+| wstest        | t5          | 2019-03-05 19:15:28 | 11301308 |                58688 |                        0 |
+| wstest        | test        | 2018-10-30 16:29:22 |        6 |                    1 |                        0 |
+| wstest        | testgroupby | 2019-01-02 16:36:04 |        6 |                    1 |                        0 |
+| wstest        | tmstamp     | 2019-01-07 17:02:43 |        2 |                    1 |                        0 |
++---------------+-------------+---------------------+----------+----------------------+--------------------------+
+10 rows in set (0.00 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>从上述内容可以看出表的基本状态，包括表名，聚集索引和非聚集索引（二级索引）大小等等，此外，还能看出部分表在一段时间内没有更新，或者更新的行数没有超过recalculate的阈值（10% rows）</p>
+
+<p><strong>而想要获取到更为详细的信息，需要查看innodb_index_stats</strong>：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Column name</th>
+      <th>Description</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">database_name</td>
+      <td>Database name</td>
+      <td>数据库名</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">table_name</td>
+      <td>Table name, partition name, or subpartition name</td>
+      <td>表名</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">index_name</td>
+      <td>Index name</td>
+      <td>索引名</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">last_update</td>
+      <td>A timestamp indicating the last time that InnoDB updated this row</td>
+      <td>最后更新时间</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">stat_name</td>
+      <td>The name of the statistic, whose value is reported in the stat_value column</td>
+      <td>统计线程的名称</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">stat_value</td>
+      <td>The value of the statistic that is named in stat_name column</td>
+      <td>统计线程的值</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">sample_size</td>
+      <td>The number of pages sampled for the estimate provided in the stat_value column</td>
+      <td>采样页数</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">stat_description</td>
+      <td>Description of the statistic that is named in the stat_name column</td>
+      <td>统计的说明</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="innodb_index_stats示例">innodb_index_stats示例：</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre>&lt;br&gt;&lt;/br&gt;mysql&gt; select * from mysql.innodb_index_stats where database_name='wstest' and table_name='t4';
++---------------+------------+------------+---------------------+--------------+------------+-------------+-----------------------------------+
+| database_name | table_name | index_name | last_update         | stat_name    | stat_value | sample_size | stat_description                  |
++---------------+------------+------------+---------------------+--------------+------------+-------------+-----------------------------------+
+| wstest        | t4         | PRIMARY    | 2019-03-21 18:57:41 | n_diff_pfx01 |    4155228 |          20 | id                                |
+| wstest        | t4         | PRIMARY    | 2019-03-21 18:57:41 | n_leaf_pages |      20988 |        NULL | Number of leaf pages in the index |
+| wstest        | t4         | PRIMARY    | 2019-03-21 18:57:41 | size         |      21043 |        NULL | Number of pages in the index      |
+| wstest        | t4         | idx_name   | 2019-03-21 18:57:41 | n_diff_pfx01 |          1 |           2 | name                              |
+| wstest        | t4         | idx_name   | 2019-03-21 18:57:41 | n_diff_pfx02 |    4189010 |          20 | name,id                           |
+| wstest        | t4         | idx_name   | 2019-03-21 18:57:41 | n_leaf_pages |       5810 |        NULL | Number of leaf pages in the index |
+| wstest        | t4         | idx_name   | 2019-03-21 18:57:41 | size         |       6699 |        NULL | Number of pages in the index      |
++---------------+------------+------------+---------------------+--------------+------------+-------------+-----------------------------------+
+7 rows in set (0.00 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>首先，对于stat_name这列的解释：<br />
+– size：该索引总的页数<br />
+– n_leaf_pages：索引中叶子节点的页数<br />
+– n_diff_pfx01：前01个字段在索引中的唯一值数目（估值）<br />
+– n_diff_pfx02：前02个字段在索引中的唯一值数目（估值）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre>mysql&gt; select count(distinct name) from wstest.t4;  ----n_diff_pfx01对应的value
++----------------------+
+| count(distinct name) |
++----------------------+
+|                    2 |
++----------------------+
+1 row in set (0.00 sec)
+
+
+mysql&gt; select count(distinct name,id) from wstest.t4;  ----n_diff_pfx02对应的value
++-------------------------+
+| count(distinct name,id) |
++-------------------------+
+|                 4194304 |
++-------------------------+
+1 row in set (2.99 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="其他信息">其他信息：</h2>
+
+<p>使用information_schema.tables查看统计信息：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>mysql&gt; select table_name,table_rows,data_length,index_length from information_schema.tables where table_name='t4';
++------------+------------+-------------+--------------+
+| TABLE_NAME | TABLE_ROWS | DATA_LENGTH | INDEX_LENGTH |
++------------+------------+-------------+--------------+
+| t4         |    4155228 |   344768512 |            0 |
++------------+------------+-------------+--------------+
+1 row in set (0.07 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>发现INDEX_LENGTH 列为0，这是由于idx_name这列，是我为了展示二级索引时加上的，还没有能刷新在information_schema.tables里。此时，使用analyze table t4;进行统计信息的重新收集<br />
+（<strong>注：若是必须analyze，一定要放在低峰进行操作</strong>”）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>mysql&gt; analyze table wstest.t4;
++-----------+---------+----------+----------+
+| Table     | Op      | Msg_type | Msg_text |
++-----------+---------+----------+----------+
+| wstest.t4 | analyze | status   | OK       |
++-----------+---------+----------+----------+
+1 row in set (0.11 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>重新收集统计信息后，查看information_schema.tables中的信息，与mysql.innodb_index_stats中的结果进行对比：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre>mysql&gt; SELECT SUM(stat_value) pages, index_name, SUM(stat_value)*@@innodb_page_size size FROM mysql.innodb_index_stats WHERE table_name='t4' AND stat_name = 'size' GROUP BY index_name; 
++-------+------------+-----------+
+| pages | index_name | size      |
++-------+------------+-----------+
+| 21108 | PRIMARY    | 345833472 |
+|  6699 | idx_name   | 109756416 |
++-------+------------+-----------+
+2 rows in set (0.00 sec)
+
+mysql&gt; select table_name,table_rows,data_length,index_length from information_schema.tables where table_name='t4';                                                    
+ +------------+------------+-------------+--------------+
+| TABLE_NAME | TABLE_ROWS | DATA_LENGTH | INDEX_LENGTH |
++------------+------------+-------------+--------------+
+| t4         |    4173444 |   345833472 |    109756416 |
++------------+------------+-------------+--------------+
+1 row in set (0.00 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以看出：<br />
+1. information_schema.tables中的DATA_LENGTH 值 = PRIMARY页数 * 页的大小，即对于InnoDB，聚集索引的大小即为数据大小。</p>
+
+<ol>
+  <li>information_schema.tables中的INDEX_LENGTH值 = 二级索引页数 * 页的大小</li>
+</ol>
+
+<p>再在t4上添加一个索引：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+</pre></td><td class="rouge-code"><pre>mysql&gt; analyze table wstest.t4;                                                                                                                                        +-----------+---------+----------+----------+
+| Table     | Op      | Msg_type | Msg_text |
++-----------+---------+----------+----------+
+| wstest.t4 | analyze | status   | OK       |
++-----------+---------+----------+----------+
+1 row in set (0.06 sec)
+
+mysql&gt; select table_name,table_rows,data_length,index_length from information_schema.tables where table_name='t4';
++------------+------------+-------------+--------------+
+| TABLE_NAME | TABLE_ROWS | DATA_LENGTH | INDEX_LENGTH |
++------------+------------+-------------+--------------+
+| t4         |    4173444 |   345833472 |    356155392 |
++------------+------------+-------------+--------------+
+1 row in set (0.00 sec)
+
+mysql&gt; SELECT SUM(stat_value) pages, index_name, SUM(stat_value)*@@innodb_page_size size FROM mysql.innodb_index_stats WHERE table_name='t4' AND stat_name = 'size' GROUP BY index_name;
++-------+------------+-----------+
+| pages | index_name | size      |
++-------+------------+-----------+
+| 21108 | PRIMARY    | 345833472 |
+| 15039 | idx_addr   | 246398976 |
+|  6699 | idx_name   | 109756416 |
++-------+------------+-----------+
+3 rows in set (0.01 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以看出：INDEX_LENGTH = size( idx_addr + idx_name )</p>
+
+<h1 id="相关配置信息">相关配置信息</h1>
+
+<p>为了使统计信息更加准确，需要关注：<br />
+<strong>innodb_stats_transient_sample_pages</strong>（innodb_stats_persistent=OFF时）：在收集统计信息时的采样索引pages页数，默认为8。</p>
+
+<p><strong>innodb_stats_persistent_sample_pages</strong>（innodb_stats_persistent=ON时）：在收集统计信息时的采样索引pages页数，默认为20。</p>
+
+<p><strong>innodb_stats_persistent</strong>：是否将InnoDB的索引统计信息同步到磁盘，若设置为0，则在产生变更时，会自动重新收集信息，得到不同的执行计划，默认为ON。<br />
+<strong>innodb_stats_auto_recalc</strong>（innodb_stats_persistent=ON时）：在表的数据被更改后（阈值：10%），自动地重新估算统计信息</p>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2019-09-18">18 Sep 2019</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL">#MySQL</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2019/09/tips-mysql-spatial-data-types/"> &laquo; MySQL中使用空间位置需注意的问题</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2019/09/tips-when-using-mysqldump/">Tips: MySQL数据库使用mysqldump备份恢复时的注意事项 &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

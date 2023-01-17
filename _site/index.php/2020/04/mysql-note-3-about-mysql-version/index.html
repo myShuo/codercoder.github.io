@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL手记3 &#8212; 关注MySQL版本 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL手记3 — 关注MySQL版本 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL手记3 — 关注MySQL版本" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="为什么要不断关注版本？版本的特性为何？" />
+<meta property="og:description" content="为什么要不断关注版本？版本的特性为何？" />
+<link rel="canonical" href="http://localhost:4000/index.php/2020/04/mysql-note-3-about-mysql-version/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2020/04/mysql-note-3-about-mysql-version/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:image" content="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0660-300x120.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-04-12T21:11:02+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2020/04/mysql-note-3-about-mysql-version/","headline":"MySQL手记3 — 关注MySQL版本","dateModified":"2020-04-12T21:11:02+08:00","datePublished":"2020-04-12T21:11:02+08:00","image":"http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0660-300x120.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2020/04/mysql-note-3-about-mysql-version/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"为什么要不断关注版本？版本的特性为何？","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL手记3 &#8212; 关注MySQL版本&url=http://localhost:4000/index.php/2020/04/mysql-note-3-about-mysql-version/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2020/04/mysql-note-3-about-mysql-version/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2020/04/mysql-note-3-about-mysql-version/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL手记3 &#8212; 关注MySQL版本</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0660-300x120.png" alt="MySQL手记3 &#8212; 关注MySQL版本">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <h1 id="一为什么要不断关注版本">一、为什么要不断关注版本</h1>
+
+<p>​从刚开始工作开始，接触得最多的数据库版本为：MySQL5.6、MySQL5.7，甚至有的项目由于时限太长，使用的还是5.1或是5.5，也有排查问题时候遇到的5.1版本（老版本通常是直接通过yum安装的）。<br />
+ ​对于DBA来说，有的时候在DBA群中讨论较多的话题：MySQL又出新版本了，当然还有官方的worklog里面的工作纪要。对于MySQL来说，由于本身的架构局限，较难满足所有的业务场景。而新的版本，很多时候，带来了很多特性，逐步地满足用户的需要。当然，也会修复部分已知bug，让MySQL更加稳定。<br />
+ ​目前（2020年4月），MySQL最新的版本是MySQL8.0，而现在，对于很多公司，生产上用得最多的，应该还是5.7和5.6版本，新的8.0版本，往往是让有强大开发能力的大厂，或是在测试环境进行。目前很多的云厂商RDS，也提供了8.0的版本。</p>
+
+<h1 id="二版本的差异">二、版本的差异</h1>
+
+<p>我们关注版本，主要就是关注其中的差异，还有对实际生产环境有极大促进作用的特性。考虑是否进行升级，升级又要注意什么？升级流程怎么样等等方面的内容，也将在后续篇章中进行介绍。在生产环境中，对于数据库的版本选择显得尤为重要，因为线上环境往往不能关机或者重启，而数据库的升级，则需要断开所有的连接，这势必会导致很多问题。而怎么选择数据库的版本呢？</p>
+
+<h2 id="首先dba需要了解业务的变动情况">首先，DBA需要了解业务的变动情况</h2>
+
+<p>业务变动对于数据库的影响。例如业务上经常添加列，那么是否可以考虑使用最新的MySQL8.0版本，可以快速增加列<a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-online-ddl-operations.html"></a>（在8.0版本之前，添加列需要消耗磁盘的IO去进行表数据的复制）；<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0660-300x120.png" alt="" /></p>
+
+<p>​又或者是业务上需要优化很多的表结构，会有大量的添加索引的操作，那么最少使用5.6的版本，因为5.6以后，MySQL支持了OnlineDDL。<a href="https://dev.mysql.com/doc/refman/5.6/en/innodb-online-ddl-operations.html">MySQL Online DDL</a><br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0685-300x127.png" alt="" /></p>
+
+<h2 id="再次对于升级的操作难度的评估">再次，对于升级的操作难度的评估​</h2>
+
+<p>对于有的业务，在做变动上，具有很大的难度（例如多应用方，或者是项目排期的问题）。这样的情况，DBA往往会采用一些额外的工具，去规避可能出现的问题：例如添加字段、索引、变更字段等等情况，DBA可采用例如pt-online-schema-change、gh-osc（后续会详细介绍）的工具进行，灵活控制数据库的负载，降低出现IO抖动的情况。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>  当然，MySQL的版本更新还在继续，而作为“一线”工作人员，需要不断刷新自己的知识库，任重道远。关于各个版本的对比，可以在官方文档中查看“What is new”的章节(https://dev.mysql.com/doc/refman/8.0/en/mysql-nutshell.html)，会有详细的介绍，感兴趣的特性别忘了进行测试哟！
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>欢迎关注公众号：<strong>朔的话</strong>：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg" alt="" /></p>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2020-04-12">12 Apr 2020</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL手记">#MySQL手记</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2020/04/mysql-note-7-mysql-utilities-introduction/"> &laquo; MySQL手记7 &#8212; MySQL Utilities工具包</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2020/04/mysql-note-0-mysql-installation/">MySQL手记0 — MySQL安装方式 &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

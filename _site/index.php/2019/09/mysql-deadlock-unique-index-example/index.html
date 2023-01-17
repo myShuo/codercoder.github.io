@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL死锁案例_唯一索引 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL死锁案例_唯一索引 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL死锁案例_唯一索引" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="间隙锁定可以显式禁用：将事务隔离级别更改为READ-COMMITTED或启用innodb_locks_unsafe_for_binlog系统变量。在这种情况下，对于搜索和索引扫描，间隙锁定将被禁用，此时gap锁仅用于外键约束检查和重复键检查。" />
+<meta property="og:description" content="间隙锁定可以显式禁用：将事务隔离级别更改为READ-COMMITTED或启用innodb_locks_unsafe_for_binlog系统变量。在这种情况下，对于搜索和索引扫描，间隙锁定将被禁用，此时gap锁仅用于外键约束检查和重复键检查。" />
+<link rel="canonical" href="http://localhost:4000/index.php/2019/09/mysql-deadlock-unique-index-example/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2019/09/mysql-deadlock-unique-index-example/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:image" content="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-0839.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-09-08T16:18:33+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2019/09/mysql-deadlock-unique-index-example/","headline":"MySQL死锁案例_唯一索引","dateModified":"2019-09-08T16:18:33+08:00","datePublished":"2019-09-08T16:18:33+08:00","image":"http://codercoder.cn/wp-content/uploads/2019/09/2019-09-0839.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2019/09/mysql-deadlock-unique-index-example/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"间隙锁定可以显式禁用：将事务隔离级别更改为READ-COMMITTED或启用innodb_locks_unsafe_for_binlog系统变量。在这种情况下，对于搜索和索引扫描，间隙锁定将被禁用，此时gap锁仅用于外键约束检查和重复键检查。","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL死锁案例_唯一索引&url=http://localhost:4000/index.php/2019/09/mysql-deadlock-unique-index-example/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2019/09/mysql-deadlock-unique-index-example/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2019/09/mysql-deadlock-unique-index-example/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL死锁案例_唯一索引</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-0839.png" alt="MySQL死锁案例_唯一索引">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <h1 id="1-情况描述">1. 情况描述</h1>
+
+<p>近期在MySQL数据库中产生了死锁的情况，与通常的死锁不同，由于表中有唯一索引，所以加锁方式也比较有趣，本文将对于该例进行阐述(本文将对数据进行脱敏操作)：</p>
+
+<p>环境描述:<br />
++ 隔离级别：READ-COMMITTED</p>
+
+<p>表结构：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="rouge-code"><pre>show create table  \G
+
+CREATE TABLE if not exists `uniq` (
+
+`id` int(11) NOT NULL AUTO_INCREMENT,
+
+`aa` int(11) DEFAULT NULL,
+
+`bb` int(11) DEFAULT NULL,
+
+PRIMARY KEY (`id`),
+
+UNIQUE KEY `uniq_ab` (`aa`,`bb`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>注意其中存在唯一索引：UNIQUE KEY <code class="highlighter-rouge">uniq_ab</code> (<code class="highlighter-rouge">aa</code>,<code class="highlighter-rouge">bb</code>)</strong></p>
+
+<h1 id="2-分析">2. 分析</h1>
+
+<p>SQL执行顺序：<br />
+<img src="http://121.40.246.76/wp-content/uploads/2019/09/2019-09-0839.png" alt="SQL执行顺序" /></p>
+
+<p><strong>问题解析：</strong><br />
++ 对于唯一索引，insert成功后，会加上X lock；</p>
+
+<ul>
+  <li>对于唯一索引的插入，需要在插入前进行duplicate key的检查，所以需要申请加上S lock，由于S lock与X lock不兼容，所以产生锁等待；</li>
+  <li>由于GAP与INSERT_INTENTION不兼容，所以产生锁等待，至此死锁产生。</li>
+</ul>
+
+<h1 id="3-基本概念">3. 基本概念</h1>
+
+<p>MySQL Innodb中的锁：<br />
+(参照：https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html)：</p>
+
+<ul>
+  <li>S LOCK：共享锁，也称读锁</li>
+  <li>X LOCK：排它锁，也称写锁</li>
+  <li>IS LOCK：暗示一个事务需要加共享锁</li>
+  <li>IX LOCK：暗示一个事务需要加排它锁</li>
+</ul>
+
+<p>对应的兼容关系：<br />
+<img src="http://121.40.246.76/wp-content/uploads/2019/09/2019-09-0883.png" alt="锁兼容关系" /></p>
+
+<p>此外，还有一套更为精准的判断逻辑，以符合更多场景，所以MySQL还具有以下几类的锁类型：</p>
+
+<ul>
+  <li>Record lock(记录锁)：加在索引行上的锁。</li>
+  <li>GAP lock(间隙锁)：加在record两侧间隙上的锁，但是不包括数据本身。</li>
+  <li>Next-key lock：Record lock + GAP lock</li>
+  <li>INSERT_INTENTION lock(插入意向锁)：在insert之前，需要申请INSERT_INTENTION lock</li>
+</ul>
+
+<p>举例:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre>   Session1:                                   
+   mysql&gt; CREATE TABLE if not exists child (id int(11) NOT NULL, PRIMARY KEY(id)) ENGINE=InnoDB;                             
+   mysql&gt; INSERT INTO child (id) values (90),(102);                                           
+   mysql&gt; START TRANSACTION;                                           
+   mysql&gt; SELECT * FROM child WHERE id &gt; 100 FOR UPDATE;                     
+
+   Session2: 
+   mysql&gt; START TRANSACTION;                                                                
+   mysql&gt; INSERT INTO child (id) VALUES (101);           
+
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>则Session2会产生INSERT_INTENTION lock waiting</strong></p>
+
+<blockquote>
+  <p>Insert对于唯一索引的加锁方式：<br />
+ <strong>对于insert的行，加上X lock，在Insert之前，需要加上 INSERT_INTENTION lock。</strong></p>
+</blockquote>
+
+<h1 id="4-问题解决">4. 问题解决</h1>
+
+<p><strong>（1）方案一(调整后端)：</strong><br />
+ 由于事发的逻辑为：一个事务中进行多次insert。在数据库层面的展示即为多次申请锁资源，并且是并发的事务，所以当插入的数据出现资源抢占时，容易发生死锁。</p>
+
+<p>所以建议：<strong>insert时插入多个值，一次性申请该sql的所有锁资源。这样，则可以避免多次申请锁资源，同时在性能上也能得以提升。</strong></p>
+
+<p><strong>（2）方案二(调整前端逻辑)：</strong><br />
+ 规避重复触发的情况，防止不同事务在唯一索引上插入相同数据。</p>
+
+<h1 id="5-附加">5. 附加</h1>
+
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html#innodb-gap-locks">innodb-record-level-locks</a></p>
+
+<p><code class="highlighter-rouge">Gap locking can be disabled explicitly. This occurs if you change the transaction isolation level to READ COMMITTED or enable the innodb_locks_unsafe_for_binlog system variable. Under these circumstances, gap locking is disabled for searches and index scans and is used only for foreign-key constraint checking and duplicate-key checking.</code><br />
+ 间隙锁定可以显式禁用：将事务隔离级别更改为READ-COMMITTED或启用innodb_locks_unsafe_for_binlog系统变量。在这种情况下，对于搜索和索引扫描，间隙锁定将被禁用，此时gap锁仅用于外键约束检查和重复键检查。</p>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2019-09-08">08 Sep 2019</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Fell-in-pit">Fell-in-pit</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Fell-in-pit">#Fell-in-pit</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL">#MySQL</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2019/09/mysql-the-datetime-column-rounding-causes-data-inconsistency/"> &laquo; MySQL datetime字段“四舍五入”导致数据不一致</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2019/09/mysql5-7-lossless-semi-replication/">MySQL5.7 lossless 半同步复制 &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>安装及使用glance &#8211;查看Linux性能命令 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>安装及使用glance –查看Linux性能命令 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="安装及使用glance –查看Linux性能命令" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="环境准备" />
+<meta property="og:description" content="环境准备" />
+<link rel="canonical" href="http://localhost:4000/index.php/2019/09/glance-show-linux-status/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2019/09/glance-show-linux-status/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:image" content="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1182.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-09-11T16:33:03+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2019/09/glance-show-linux-status/","headline":"安装及使用glance –查看Linux性能命令","dateModified":"2019-09-11T16:33:03+08:00","datePublished":"2019-09-11T16:33:03+08:00","image":"http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1182.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2019/09/glance-show-linux-status/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"环境准备","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=安装及使用glance &#8211;查看Linux性能命令&url=http://localhost:4000/index.php/2019/09/glance-show-linux-status/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2019/09/glance-show-linux-status/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2019/09/glance-show-linux-status/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">安装及使用glance &#8211;查看Linux性能命令</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1182.png" alt="安装及使用glance &#8211;查看Linux性能命令">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <h1 id="环境准备">环境准备</h1>
+
+<h2 id="python3">python3</h2>
+
+<h3 id="更新yum源">更新yum源</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>备份：
+mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+mv epel.repo epel.repo.backup
+
+yum clean all    ##清理缓存
+
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-6.repo
+yum makecache
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="安装python3">安装python3</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>yum list python3*
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>找到相关的包后，进行安装：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>yum install python3*
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>在/usr/bin目录下，更换默认的python文件</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>mv /usr/bin/python  /usr/bin/python2.6.bak
+cp -rf /usr/bin/python3  /use/bin/python
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="安装glance">安装glance</h1>
+
+<ol>
+  <li>使用curl安装
+    <blockquote>
+      <table>
+        <tbody>
+          <tr>
+            <td>curl -L https://bit.ly/glances</td>
+            <td>/bin/bash</td>
+          </tr>
+        </tbody>
+      </table>
+    </blockquote>
+  </li>
+  <li>使用wget安装
+    <blockquote>
+      <table>
+        <tbody>
+          <tr>
+            <td>wget -O- http://bit.ly/glances</td>
+            <td>/bin/bash</td>
+          </tr>
+        </tbody>
+      </table>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="报错及修复">报错及修复</h2>
+
+<h3 id="yum配置报错">yum配置报错</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+</pre></td><td class="rouge-code"><pre>[root@localhost ~]# sh install.sh
+Detected system: CentOS
+Loaded plugins: fastestmirror, security
+Setting up Install Process
+Loading mirror speeds from cached hostfile
+ * base: mirrors.aliyun.com
+ * extras: mirrors.aliyun.com
+ * updates: mirrors.aliyun.com
+ * webtatic: uk.repo.webtatic.com
+Package python-pip-7.1.0-1.el6.noarch already installed and latest version
+Package python-devel-2.6.6-66.el6_8.x86_64 already installed and latest version
+Package gcc-4.4.7-23.el6.x86_64 already installed and latest version
+Package lm_sensors-3.1.1-17.el6.x86_64 already installed and latest version
+Package 1:wireless-tools-29-6.el6.x86_64 already installed and latest version
+Nothing to do
+Install dependancies
+Traceback (most recent call last):
+  File "/usr/bin/pip", line 7, in 
+    from pip._internal import main
+  File "/usr/lib/python2.6/site-packages/pip/_internal/__init__.py", line 19, in 
+    from pip._vendor.urllib3.exceptions import DependencyWarning
+  File "/usr/lib/python2.6/site-packages/pip/_vendor/urllib3/__init__.py", line 8, in 
+    from .connectionpool import (
+  File "/usr/lib/python2.6/site-packages/pip/_vendor/urllib3/connectionpool.py", line 92
+    _blocking_errnos = {errno.EAGAIN, errno.EWOULDBLOCK}
+                                    ^
+SyntaxError: invalid syntax
+Traceback (most recent call last):
+  File "/usr/bin/pip", line 7, in 
+    from pip._internal import main
+  File "/usr/lib/python2.6/site-packages/pip/_internal/__init__.py", line 19, in 
+    from pip._vendor.urllib3.exceptions import DependencyWarning
+  File "/usr/lib/python2.6/site-packages/pip/_vendor/urllib3/__init__.py", line 8, in 
+    from .connectionpool import (
+  File "/usr/lib/python2.6/site-packages/pip/_vendor/urllib3/connectionpool.py", line 92
+    _blocking_errnos = {errno.EAGAIN, errno.EWOULDBLOCK}
+                                    ^
+SyntaxError: invalid syntax
+Install Glances
+Traceback (most recent call last):
+  File "/usr/bin/pip", line 7, in 
+    from pip._internal import main
+  File "/usr/lib/python2.6/site-packages/pip/_internal/__init__.py", line 19, in 
+    from pip._vendor.urllib3.exceptions import DependencyWarning
+  File "/usr/lib/python2.6/site-packages/pip/_vendor/urllib3/__init__.py", line 8, in 
+    from .connectionpool import (
+  File "/usr/lib/python2.6/site-packages/pip/_vendor/urllib3/connectionpool.py", line 92
+    _blocking_errnos = {errno.EAGAIN, errno.EWOULDBLOCK}
+                                    ^
+SyntaxError: invalid syntax
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>修复</strong><br />
+可以看出报错是在yum时候，<strong>由于yum配置为python2版本，现在的默认python为python3，所以解析报错</strong>。修复：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>vim  /usr/bin/yum
+#把   #!/usr/bin/python 改为 #!/usr/bin/python2.6
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="pip版本问题">pip版本问题</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+</pre></td><td class="rouge-code"><pre>[root@localhost  ~]# ./install.sh       
+Detected system: CentOS
+Loaded plugins: fastestmirror, security
+Setting up Install Process
+Loading mirror speeds from cached hostfile
+ * base: mirrors.aliyun.com
+ * extras: mirrors.aliyun.com
+ * updates: mirrors.aliyun.com
+ * webtatic: uk.repo.webtatic.com
+Package python-pip-7.1.0-1.el6.noarch already installed and latest version
+Package python-devel-2.6.6-66.el6_8.x86_64 already installed and latest version
+Package gcc-4.4.7-23.el6.x86_64 already installed and latest version
+Package lm_sensors-3.1.1-17.el6.x86_64 already installed and latest version
+Package 1:wireless-tools-29-6.el6.x86_64 already installed and latest version
+Nothing to do
+Install dependancies
+Traceback (most recent call last):
+  File "/usr/bin/pip", line 7, in 
+    from pip._internal import main
+ImportError: No module named 'pip'
+Traceback (most recent call last):
+  File "/usr/bin/pip", line 7, in 
+    from pip._internal import main
+ImportError: No module named 'pip'
+Install Glances
+Traceback (most recent call last):
+  File "/usr/bin/pip", line 7, in 
+    from pip._internal import main
+ImportError: No module named 'pip'
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>修复</strong><br />
+可以看出是因为pip版本较低的原因，所以升级pip：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre>wget https://bootstrap.pypa.io/get-pip.py -o get-pip.py 
+python get-pip.py --force-reinstall
+
+[root@localhost  ~]# python get-pip.py --force-reinstall
+DEPRECATION: Python 3.4 support has been deprecated. pip 19.1 will be the last one supporting it. Please upgrade your Python as Python 3.4 won't be maintained after March 2019 (cf PEP 429).
+Collecting pip
+  Using cached https://files.pythonhosted.org/packages/5c/e0/be401c003291b56efc55aeba6a80ab790d3d4cece2778288d65323009420/pip-19.1.1-py2.py3-none-any.whl
+Collecting wheel
+  Downloading https://files.pythonhosted.org/packages/bb/10/44230dd6bf3563b8f227dbf344c908d412ad2ff48066476672f3a72e174e/wheel-0.33.4-py2.py3-none-any.whl
+Installing collected packages: pip, wheel
+Successfully installed pip-19.1.1 wheel-0.33.4
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="安装glance时的日志">安装glance时的日志</h2>
+
+<p>安装文档<sup id="fnref-588-1"><a href="#fn-588-1">1</a></sup></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+</pre></td><td class="rouge-code"><pre>[root@localhost  ~]# ./install.sh 
+Detected system: CentOS
+Loaded plugins: fastestmirror, security
+Setting up Install Process
+Loading mirror speeds from cached hostfile
+ * base: mirrors.aliyun.com
+ * extras: mirrors.aliyun.com
+ * updates: mirrors.aliyun.com
+ * webtatic: us-east.repo.webtatic.com
+Package python-pip-7.1.0-1.el6.noarch already installed and latest version
+Package python-devel-2.6.6-66.el6_8.x86_64 already installed and latest version
+Package gcc-4.4.7-23.el6.x86_64 already installed and latest version
+Package lm_sensors-3.1.1-17.el6.x86_64 already installed and latest version
+Package 1:wireless-tools-29-6.el6.x86_64 already installed and latest version
+Nothing to do
+Install dependancies
+DEPRECATION: Python 3.4 support has been deprecated. pip 19.1 will be the last one supporting it. Please upgrade your Python as Python 3.4 won't be maintained after March 2019 (cf PEP 429).
+Requirement already up-to-date: pip in /usr/lib/python3.4/site-packages (19.1.1)
+DEPRECATION: Python 3.4 support has been deprecated. pip 19.1 will be the last one supporting it. Please upgrade your Python as Python 3.4 won't be maintained after March 2019 (cf PEP 429).
+Requirement already satisfied: setuptools in /usr/lib/python3.4/site-packages (19.6.2)
+Collecting glances[action,batinfo,browser,cpuinfo,docker,export,folders,gpu,graph,ip,raid,snmp,web,wifi]
+  Downloading https://files.pythonhosted.org/packages/32/34/72f9202ad5b7ada314507a50b9ab1fb604d2f468b138679e0a4fedeb91fa/Glances-3.1.0.tar.gz (6.7MB)
+     |██████████████████████████████▋ | 6.4MB 22kB/s eta 0:00:13
+     .....
+Successfully built glances psutil
+Installing collected packages: psutil, glances
+Successfully installed glances-3.1.0 psutil-5.6.2
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>观察到<strong><em>Successfully installed glances-3.1.0 psutil-5.6.2</em></strong>，即为安装成功。</p>
+
+<h1 id="使用glance">使用glance</h1>
+
+<p>在命令行直接输入：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>    glances
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>显示如下：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1182.png"><img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1182.png" alt="" /></a></p>
+
+<p>可以看出，得到了系统的多方面指标。<br />
+对于各个指标的情况，还可以加上对应参数，例如CPU各个核的情况：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>glances --percpu 
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>则会显示所有CPU分别的状态：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1151.png"><img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1151.png" alt="" /></a></p>
+
+<p>查看帮助：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre> glances --help
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><a href="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1124.png"><img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1124.png" alt="" /></a></p>
+
+<h2 id="glance其它功能">glance其它功能</h2>
+
+<h3 id="web">web</h3>
+
+<p>还可以使用web查看状态：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>[root@localhost  ~]#  glances -w
+Glances Web User Interface started on http://0.0.0.0:61208/
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>然后用浏览器即可看到监控的状态。<br />
+.</p>
+
+<h3 id="influxdb">influxdb</h3>
+
+<p>将监控数据输出到influxdb<sup id="fnref-588-2"><a href="#fn-588-2">2</a></sup>：<br />
+首先安装influxdb module：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>pip install influxdb
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>glances -t 5 --export influxdb
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>安装grafana：<br />
+https://grafana.com/grafana/download?platform=linux</p>
+
+<div class="footnotes" role="doc-endnotes">- - - - - -
+
+1. [Glances](https://pypi.org/project/Glances/) [↩︎](#fnref-588-1)
+2. [InfluxDB &amp; Glances](https://glances.readthedocs.io/en/stable/gw/influxdb.html) [↩︎](#fnref-588-2)
+
+</div>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2019-09-11">11 Sep 2019</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tool">#Tool</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2019/09/mysql-index-statistic-info/"> &laquo; MySQL索引统计信息</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2019/09/attention-when-using-aliyun-rds/">使用阿里云RDS的注意事项 &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

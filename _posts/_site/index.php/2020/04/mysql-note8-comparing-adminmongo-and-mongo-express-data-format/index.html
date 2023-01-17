@@ -1,0 +1,96 @@
+<h1 id="一adminmongo--mongo-express">一、adminMongo &amp; Mongo-express</h1>
+
+<h2 id="介绍">介绍：</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    adminMongo（https://github.com/mrvautin/adminMongo）和Mongo-express（https://github.com/mongo-express/mongo-express）都是非常简单好用的MongoDB可视化展示的工具，在平常的调试或者排查问题中会使用到。
+
+</code></pre></div></div>
+
+<h2 id="11-adminmongo安装">1.1 adminMongo安装</h2>
+
+<h3 id="1使用git拷贝仓库">（1）使用git拷贝仓库</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/mrvautin/adminMongo
+
+</code></pre></div></div>
+
+<h3 id="2安装">（2）安装</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd adminMongo/
+npm install
+
+</code></pre></div></div>
+
+<p><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-1525.png" alt="" /></p>
+
+<h3 id="3启动">（3）启动</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> npm start
+
+</code></pre></div></div>
+
+<p><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-1571.png" alt="" /><br />
+可以看出，adminMongo的安装及启动都是非常的方便，启动后，直接访问http://localhost:1234 即可。</p>
+
+<h2 id="12-mongo-express安装">1.2 Mongo-express安装</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    可使用docker进行快速便捷的安装：
+
+</code></pre></div></div>
+
+<h3 id="1编辑docker启动mongo-express所需的配置文件">（1）编辑docker启动mongo-express所需的配置文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat start.yml
+version: '3.1'
+
+services:
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+      ME_CONFIG_MONGODB_ADMINUSERNAME: mongoadmin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mongoroot
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_SERVER: 127.0.0.1
+
+</code></pre></div></div>
+
+<p><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-1549.png" alt="" /></p>
+
+<h3 id="2使用docker安装及启动">（2）使用docker安装及启动</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker-compose -f start.yml up
+
+</code></pre></div></div>
+
+<h1 id="二两者的差异">二、两者的差异</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    近日在查看MongoDB的数据时，发现得到的结果格式不一致，猜想是MongoDB客户端展示的问题，显示如下：
+
+</code></pre></div></div>
+
+<h2 id="adminmongo">adminMongo：</h2>
+
+<p><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-1586.png" alt="" /></p>
+
+<h3 id="mongo-express">Mongo-express:</h3>
+
+<p><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-1585.png" alt="" /></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>插入的时候，插入的是一个kv键值对，其中value为json格式。
+
+</code></pre></div></div>
+
+<p>可以看出，对于MongoDB中的document，adminMongo显示为一个包含“_id”的JSON串（并且把原来的JSON串的双引号进行了转义），mongo-express则是展示这个document中的键值对，并保留插入时候的JSON。</p>
+
+<p>两者都可以显示数据，就是展示的格式不同，可以拿到json.cn进行查看：<br />
+ adminMongo：需要先转换一次，再把去除了双引号的value提出来（json串）<br />
+ mongo-express：删除key，直接使用value（json串）进行查看。</p>
+
+<p>欢迎关注公众号：<strong>朔的话</strong>：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg" alt="" /></p>

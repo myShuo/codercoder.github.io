@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL手记21 &#8212; MySQL的分库分表 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL手记21 — MySQL的分库分表 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL手记21 — MySQL的分库分表" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="MySQL的分库分表是业内常用的数据库拆分手段，能够解决绝大部分的“核心大表”情况。分库分表后，运维难度增大，所以在初期，就要估计好量，并作出一定冗余。对于分库分表的运维，需要有一套完善的平台进行，降低“人肉运维”出错几率。" />
+<meta property="og:description" content="MySQL的分库分表是业内常用的数据库拆分手段，能够解决绝大部分的“核心大表”情况。分库分表后，运维难度增大，所以在初期，就要估计好量，并作出一定冗余。对于分库分表的运维，需要有一套完善的平台进行，降低“人肉运维”出错几率。" />
+<link rel="canonical" href="http://localhost:4000/index.php/2020/06/mysql-note-21-mysql-sharding-table/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2020/06/mysql-note-21-mysql-sharding-table/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:image" content="http://codercoder.cn/wp-content/uploads/2020/06/2020-06-115.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-06-11T19:59:18+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2020/06/mysql-note-21-mysql-sharding-table/","headline":"MySQL手记21 — MySQL的分库分表","dateModified":"2020-06-11T19:59:18+08:00","datePublished":"2020-06-11T19:59:18+08:00","image":"http://codercoder.cn/wp-content/uploads/2020/06/2020-06-115.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2020/06/mysql-note-21-mysql-sharding-table/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"MySQL的分库分表是业内常用的数据库拆分手段，能够解决绝大部分的“核心大表”情况。分库分表后，运维难度增大，所以在初期，就要估计好量，并作出一定冗余。对于分库分表的运维，需要有一套完善的平台进行，降低“人肉运维”出错几率。","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL手记21 &#8212; MySQL的分库分表&url=http://localhost:4000/index.php/2020/06/mysql-note-21-mysql-sharding-table/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2020/06/mysql-note-21-mysql-sharding-table/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2020/06/mysql-note-21-mysql-sharding-table/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL手记21 &#8212; MySQL的分库分表</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="http://codercoder.cn/wp-content/uploads/2020/06/2020-06-115.png" alt="MySQL手记21 &#8212; MySQL的分库分表">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <h1 id="一基本情况">一、基本情况</h1>
+
+<p>随着数据量的增多，往往带来数据库的负载加大，有时甚至会影响线上的正常业务，在此情况下，常有几种解决方案：数据归档、配置升级、数据拆分。对于数据库表的拆分，又分为：垂直拆分、水平拆分。<br />
+ 垂直拆分：将不同业务需要访问到的库，分在不同的数据库实例下，以降低单个实例的负载<br />
+ 水平拆分：常见两种方案：分库不分表、分库加分表<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/06/2020-06-115.png" alt="" /><br />
+（图片来源https://www.digitalocean.com/community/tutorials/understanding-database-sharding）</p>
+
+<p>数据归档：对于数据量或QPS较为稳定，不会“爆棚式”增长的库表，还有可能是公司内部难以推动或者关联较多导致拆分的环境，而可以采用的临时解决方案。<br />
+ 升级配置：将数据库所在的硬件设施进行升级，以便于更好的支撑当前的数据环境<br />
+​ <br />
+由于数据归档、升级配置两种方案的思路很简单，不过多介绍，这里就说一些注意事项：<br />
+<strong>（1）数据下游</strong><br />
+若下游有数据订阅，或者离线的任务，那么：<br />
+ <strong>数据归档：</strong>部分业务可能会存在离线任务，那么离线任务的时间需要和归档时间错开，防止造成较高的负载；<br />
+ <strong>订阅任务：</strong>需要判断是否需要过滤归档产生的DELETE语句（归档产生的DELETE的量可能会随数据量的大小，而变得很大，影响订阅的通道，造成订阅阻塞或者延迟较大的影响）<br />
+ <strong>实例配置升级：</strong>大部分情况，进行实例配置的升级，涉及到新老实例的切换，会影响binlog的位点，在切换后，更改订阅的binlog的位点信息<br />
+所以下游有订阅任务时，需要进行调整切换的时间，应错开离线、归档任务</p>
+
+<p><strong>（2）数据归档注意事项查阅：</strong><a href="http://codercoder.cn/index.php/2019/09/mysql-archive-tool-pt-archiver/">MySQL手记11 — MySQL归档工具：pt-archiver</a><br />
+<strong>（3）配置升级可参考：</strong><a href="http://codercoder.cn/index.php/2020/04/mysql-note-14-attention-when-migrating-data/">MySQL手记14 — 数据迁移注意事项</a></p>
+
+<h1 id="二数据库拆分">二、数据库拆分</h1>
+
+<h2 id="21-垂直拆分">2.1 垂直拆分</h2>
+
+<p>将不同业务所需要访问的库表进行拆分，不同的业务访问不同的库表，访问其他业务的数据库表，则通过程序接口调用方式进行。<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/06/2020-06-1135.png" alt="" /></p>
+
+<h2 id="22-水平拆分">2.2 水平拆分</h2>
+
+<h3 id="1-仅分库">1. 仅分库</h3>
+
+<p>例如，应用A访问db1库的db1表，此时将db1拆分为16个库：db1_0 ~ db1_15，每个库中仅有一个同名表tb1。应用则通过分库的规则访问到不同的数据库实例。</p>
+
+<h3 id="2-分库分表">2. 分库分表</h3>
+
+<p>例如，应用A访问db-1，此时将db1拆分为16个库16个表：db1_0 ~ db1_15，每个数据库中有16个表：tb0 ~ tb15。应用则通过分库分表的规则访问到不同的数据库实例下的不同表。<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/06/2020-06-1119.png" alt="" /></p>
+
+<h3 id="3-仅分库-or-分库分表">3. 仅分库 or 分库分表？</h3>
+
+<h4 id="1数据量qps是否会大幅度上升">（1）数据量、QPS是否会大幅度上升?</h4>
+
+<p>数据量、QPS上升，业务量飞速上涨，以至于实例升配等的方案很有可能在短期内出现硬件的瓶颈，所以需要提前将数据库表进行拆分。<br />
+（<strong>数据库巡检：通常我们会对数据库进行巡检。每个一段时间，统计各个数据库大表信息，讨论是否需要进行拆分处理。</strong>）</p>
+
+<h4 id="2当前是否出现查询缓慢的瓶颈">（2）当前是否出现查询缓慢的瓶颈？</h4>
+
+<p>对于出现慢查的环境，DBA因首先进行SQL或者结构的优化，尽量降低慢查数，使当前的配置能够尽可能支撑更多的查询。</p>
+
+<h4 id="3业务对于响应速度的要求">（3）业务对于响应速度的要求？</h4>
+
+<p>部分边缘的业务，哪怕是数据量很大，但是由于其对数据库的响应速度要求不高，需要根据需求判断。</p>
+
+<h1 id="三分表分库">三、分表分库</h1>
+
+<h2 id="31-拆分前准备工作">3.1 拆分前准备工作</h2>
+
+<p>对于数据库来说，做拆分之前一定要做足充分的准备，再拆分迁移后，分表分库的环境是很难进行回滚的。<br />
+<strong>（1）分库分表算法：</strong><br />
+先按库取模，再按照表取模<br />
+按照总表的数目取模…</p>
+
+<p>计算需要拆分为多少个库表，评估业务量，根据目前环境中的QPS与配置的比例，从而得到需要的实例的数目.</p>
+
+<p>例如：<br />
+ 业务量为最大20万的QPS（其中读、写各占一半），当前环境16核64GB的实例QPS为2万：可拆分为16个库，每个库一个16核64GB实例，这样，最终每个实例的最大QPS的量为20万/16</p>
+
+<p><strong>同时，采用读写分离的方式，添加多个只读节点，分散主库压力</strong></p>
+
+<p><strong>（2）选取分片键</strong><br />
+ 谨慎选择分片键，使业务尽量为分片键上的等值查询。<br />
+ <strong>分片键上的范围查询（应避免）</strong></p>
+
+<p><strong>（3）分表的数目 &amp; 运维复杂度</strong><br />
+分库分表，意味着更高的运维复杂度。各种对于子表的操作，都需要完善的流程进行。</p>
+
+<p><strong>（4）子表上的结构变更？怎么验证？</strong><br />
+<strong>（5）雪花算法生成整型递增主键</strong><br />
+<strong>（6）数据下游</strong><br />
+ 订阅、同步任务<br />
+ 需要接入多个数据源<br />
+ 离线任务<br />
+ 从不同的数据源进行拉取，再聚合</p>
+
+<h2 id="32-数据同步">3.2 数据同步</h2>
+
+<p><strong>（1）历史数据迁移</strong><br />
+ 按照分表分库的规则，使用数据库中间价，将数据分批次迁移到目标端。应用常用的分表分库方案有：Sharding-JDBC，对于数据库分库分表中间件，可以用同一产品的分支：Sharding-Proxy。该项目从4.0版本开始，已经收录为了Apache的项目，start的数据也在升高（https://github.com/apache/shardingsphere）。<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/06/2020-06-117.png" alt="" /><br />
+ 对于Sharding-Proxy，配置数据库分表分库的路由，即可将数据按规则分发到对应的分表中，并且兼容基本的MySQL语法。<br />
+ 全量同步，可直接将数据dump为sql文件，再通过Sharding-Proxy进行回放。</p>
+
+<p><strong>（2）增量同步</strong><br />
+ 在全量数据迁移时，记录下binlog位点，然后从该位点开始进行增量同步，使用binlog订阅的方式，将源端的binlog在目标端回放。<br />
+ 对于源端的数据库配置注意事项，例如：binlog_format=ROW、binlog_row_image=full等的配置项，可参照：http://codercoder.cn/index.php/2020/04/mysql-note-14-attention-when-migrating-data/</p>
+
+<p>对于binlog的同步：<br />
+ （1）可在源端订阅binlog，解析得到的SQL，在目标端执行<br />
+ （2）使用同步工具，例如：阿里开源的binlog订阅和消费组件—-<strong><a href="https://github.com/alibaba/canal">canal, MySQL binlog 增量订阅&amp;消费组件</a></strong>；或是阿里的另一个开源项目<strong><a href="https://github.com/alibaba/otter">otter,分布式数据库同步系统</a></strong><br />
+<em>（ps.对比了阿里云、微软云、AWS、腾讯云的数据同步服务，其实哪怕是在商业的解决方案里，阿里云的数据同步方案是灵活性最高，并且兼容性最好的）</em><br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/06/2020-06-1173.png" alt="" /></p>
+
+<h2 id="33-数据校验">3.3 数据校验</h2>
+
+<p>在数据同步后，需要对数据进行校验，常用的方式有：<br />
+ a.按照主键，分批次逐行对比（效率低，结果精确）<br />
+ b.对比源端和目标端的数据行数</p>
+
+<h1 id="总结">总结</h1>
+
+<p>MySQL的分库分表死活业内常用的数据库拆分手段，能够解决绝大部分的“核心大表”情况。但是分库分表后，若需要进行再次拆分，运维难度就会很大，所以在初期制定时，就要估计好数据量、QPS等的情况，并作出一定冗余。<br />
+ 此外，对于分库分表的运维，由于其复杂度增大，也需要有一套完善的平台进行，降低“人肉运维”出错几率。<br />
+ 若出现了分库分表也支撑不起的业务，那么就可以考虑其它类型的数据库，近年来很火热的分布式数据库不失为一个很好的选择。</p>
+
+<p>后续将会详细介绍“数据同步”、“数据库代理Sharding-Proxy”等内容，敬请期待。</p>
+
+<p>欢迎关注公众号：<strong>朔的话</strong>：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg" alt="" /></p>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2020-06-11">11 Jun 2020</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL手记">#MySQL手记</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2020/06/pic_to_db/"> &laquo; 如何将图片导入到Oracle数据库</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2020/06/mysql-note-22-tips-lock-status-when-not-using-index/">MySQL手记22 &#8212; Tips：不走索引就锁全表数据吗？ &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

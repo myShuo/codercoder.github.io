@@ -1,0 +1,49 @@
+<p><a href="https://www.percona.com/community-blog/2018/08/29/7-checks-successfully-upgrade-mongodb-replica-set-production/">7 Checks to Successfully Upgrade MongoDB Replica Set in Production</a></p>
+
+<p><strong>注：本篇文章介绍的“升级检查”，同样可以适用于其它数据库关于升级前的检查项。</strong><br />
+<img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-0885-300x238.jpg" alt="" /></p>
+
+<h1 id="1-数据兼容性">1. 数据兼容性</h1>
+
+<p>在release changes里面进行查看，是否有configurations, metadata, protocol version, validations, indexes or options等的一些变化</p>
+
+<h1 id="2-驱动兼容性">2. 驱动兼容性</h1>
+
+<p>可以在网站上进行对比: The driver compatibility matrix lists the versions of MongoDB and language-specific versions that are compatible with those versions.</p>
+
+<h1 id="3-更新的顺序">3. 更新的顺序</h1>
+
+<p>不要跨多个版本进行升级，例如想要从3.4升级到4.0，请先升级到3.6</p>
+
+<ul>
+  <li>Upgrade your current MongoDB version to the latest revision of current release series</li>
+  <li>Go to check 1 and plan your upgrade</li>
+</ul>
+
+<h1 id="4-设置兼容配置">4. 设置兼容配置</h1>
+
+<p>Feature Compatibility Flags， 可以<a href="https://docs.mongodb.com/manual/reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion">setFeatureCompatibilityVersion</a> allows you to set the features those are incompatible with the previous versions ON or OFF.</p>
+
+<h1 id="5-在测试环境先进行演练">5. 在测试环境先进行演练</h1>
+
+<p>Now that you’re prepared, you can upgrade the MongoDB replica set in rolling fashion. This upgrade will involve the DB upgrade, driver upgrades and application code that is compatible with this driver version and DB version. To minimize the impact, upgrade secondaries in a replica set first, followed by stepping down a primary and its upgrade.</p>
+
+<p>Test your downgrade path:Prepare for downgrading in the test environment. A MongoDB replica set must follow the downgrade path from the path to be upgraded to, to the latest revision of the currently used release series.</p>
+
+<p><strong>为使影响最小，先升级从节点secondaries ，再升级主节点primary。</strong></p>
+
+<p><strong>制定降级方案。</strong></p>
+
+<h1 id="6-预发布-allow-a-burn-in-period">6. 预发布 Allow a Burn-in Period</h1>
+
+<p>出现问题可以按照4进行配置（甚至是回滚）</p>
+
+<h1 id="7-upgrade-mongodb-tools">7. Upgrade MongoDB Tools</h1>
+
+<ul>
+  <li>Upgrade the mongo shell to the same version as the MongoDB deployment</li>
+  <li>Upgrade mongodump and mongorestore versions used in your backup and restore scripts.</li>
+  <li>Use the same version of mongodump/mongorestore to backup/restore deployment of the same version on MongoDB.</li>
+</ul>
+
+<p><strong>使用相同版本的mongo shell，升级mongodump和mongorestore 工具。</strong></p>

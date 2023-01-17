@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL数据库Loose Index Scan与Tight Index Scan介绍 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL数据库Loose Index Scan与Tight Index Scan介绍 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL数据库Loose Index Scan与Tight Index Scan介绍" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="介绍" />
+<meta property="og:description" content="介绍" />
+<link rel="canonical" href="http://localhost:4000/index.php/2019/09/mysql-loose-index-scan-and-tight-index-scan-introduction/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2019/09/mysql-loose-index-scan-and-tight-index-scan-introduction/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:image" content="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1097.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-09-10T17:24:15+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2019/09/mysql-loose-index-scan-and-tight-index-scan-introduction/","headline":"MySQL数据库Loose Index Scan与Tight Index Scan介绍","dateModified":"2019-09-10T17:24:15+08:00","datePublished":"2019-09-10T17:24:15+08:00","image":"http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1097.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2019/09/mysql-loose-index-scan-and-tight-index-scan-introduction/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"介绍","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL数据库Loose Index Scan与Tight Index Scan介绍&url=http://localhost:4000/index.php/2019/09/mysql-loose-index-scan-and-tight-index-scan-introduction/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2019/09/mysql-loose-index-scan-and-tight-index-scan-introduction/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2019/09/mysql-loose-index-scan-and-tight-index-scan-introduction/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL数据库Loose Index Scan与Tight Index Scan介绍</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1097.png" alt="MySQL数据库Loose Index Scan与Tight Index Scan介绍">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <h1 id="介绍">介绍</h1>
+
+<p>本篇文章主要介绍Loose Index Scan与Tight Index Scan，次两种方法均为<strong>group by</strong>语法时候，MySQL进行的优化方法。官方文档：<a href="https://dev.mysql.com/doc/refman/8.0/en/group-by-optimization.html">Group by Optimization</a><br />
+<a href="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1097.png"><img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1097.png" alt="" /></a></p>
+
+<h1 id="group-by-optimization">Group by Optimization</h1>
+
+<blockquote>
+  <p>The most general way to satisfy a GROUP BY clause is to scan the whole table and create a new temporary table where all rows from each group are consecutive, and then use this temporary table to discover groups and apply aggregate functions (if any). In some cases, MySQL is able to do much better than that and to avoid creation of temporary tables by using index access.</p>
+</blockquote>
+
+<p><strong>通常情况下，GROUP BY 语法通过扫描全表、创建临时表，并使用这个临时表进行分组和聚合运算。在某些情况下，MySQL可以使用索引来规避创建临时表。</strong></p>
+
+<blockquote>
+  <p>There are two ways to execute a GROUP BY query through index access, as detailed in the following sections. In the first method, the grouping operation is applied together with all range predicates (if any). The second method first performs a range scan, and then groups the resulting tuples.</p>
+</blockquote>
+
+<p><strong>GROUP BY 有两种方式使用索引。第一：group运算和所有的可能的范围一起应用；第二种：首先执行range扫描，然后再group得到的元祖。</strong></p>
+
+<h1 id="loose-index-scan-松散索引扫描">Loose Index Scan-松散索引扫描</h1>
+
+<blockquote>
+  <p>The most efficient way to process GROUP BY is when an index is used to directly retrieve the grouping columns. With this access method, MySQL uses the property of some index types that the keys are ordered (for example, BTREE). This property enables use of lookup groups in an index without having to consider all keys in the index that satisfy all WHERE conditions. This access method considers only a fraction of the keys in an index, so it is called a loose index scan. When there is no WHERE clause, a loose index scan reads as many keys as the number of groups, which may be a much smaller number than that of all keys. If the WHERE clause contains range predicates (see the discussion of therangejoin type inSection 8.8.1, “Optimizing Queries with EXPLAIN”), a loose index scan looks up the first key of each group that satisfies the range conditions, and again reads the least possible number of keys.</p>
+</blockquote>
+
+<p><strong>GROUP BY 最有效的方式是：group by的字段直接覆盖索引。在此情况下。MySQL使用已按key排序的合适索引类型（例如：BTREE）。这个特性使得对于索引字段group的查找不需要检索WHERE条件的所有索引字段。这种索引方式只扫描一个索引中的部分字段，所以称之为松散索引扫描。</strong></p>
+
+<p><strong>当没有WHERE一句时，loose index scan reads需要扫描group by 中的字段，这也比扫描全部的字段更加的轻量。若在WHERE条件中包含range条件，则loose index scan reads查询满足range条件的group by 中的第一个字段，即仅扫描最少数量的字段。</strong></p>
+
+<p>The query is over a single table.</p>
+
+<p>The GROUP BY names only columns that form a leftmost prefix of the index and no other columns. (If, instead of GROUP BY, the query has a DISTINCT clause, all distinct attributes refer to columns that form a leftmost prefix of the index.) For example, if a table t1 has an index on (c1,c2,c3), loose index scan is applicable if the query has GROUP BY c1, c2,. It is not applicable if the query has GROUP BY c2, c3 (the columns are not a leftmost prefix) or GROUP BY c1, c2, c4 (c4 is not in the index).</p>
+
+<p>The only aggregate functions used in the select list (if any) are MIN() and MAX(), and all of them refer to the same column. The column must be in the index and must immediately follow the columns in the GROUP BY.</p>
+
+<p>Any other parts of the index than those from the GROUP BY referenced in the query must be constants (that is, they must be referenced in equalities with constants), except for the argument of MIN() or MAX() functions.</p>
+
+<p>For columns in the index, full column values must be indexed, not just a prefix. For example, with c1 VARCHAR(20), INDEX (c1(10)), the index cannot be used for loose index scan.</p>
+
+<p>If loose index scan is applicable to a query, the EXPLAIN output shows Using index for group-by in the Extra column.</p>
+
+<p>Assume that there is an index idx(c1,c2,c3) on table t1(c1,c2,c3,c4). The loose index scan access method can be used for the following queries:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre>SELECT c1, c2 FROM t1 GROUP BY c1, c2;
+
+SELECT DISTINCT c1, c2 FROM t1;
+
+SELECT c1, MIN(c2) FROM t1 GROUP BY c1;
+
+SELECT c1, c2 FROM t1 WHERE c1 &lt; const GROUP BY c1, c2;
+
+SELECT MAX(c3), MIN(c3), c1, c2 FROM t1 WHERE c2 &gt; const GROUP BY c1, c2;
+
+SELECT c2 FROM t1 WHERE c1 &lt; const GROUP BY c1, c2;
+
+SELECT c1, c2 FROM t1 WHERE c3 = const GROUP BY c1, c2;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The following queries cannot be executed with this quick select method, for the reasons given:</p>
+
+<blockquote>
+  <p>There are aggregate functions other than MIN() or MAX():</p>
+</blockquote>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>SELECT c1, SUM(c2) FROM t1 GROUP BY c1;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<blockquote>
+  <p>The columns in the GROUP BY clause do not form a leftmost prefix of the index:</p>
+</blockquote>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>SELECT c1, c2 FROM t1 GROUP BY c2, c3;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<blockquote>
+  <p>The query refers to a part of a key that comes after the GROUP BY part, and for which there is no equality with a constant:</p>
+</blockquote>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>SELECT c1, c3 FROM t1 GROUP BY c1, c2;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>Were the query to include WHERE c3 = const, loose index scan could be used.</strong></p>
+
+<p>The loose index scan access method can be applied to other forms of aggregate function references in the select list, in addition to the MIN() and MAX() references already supported:</p>
+
+<p>AVG(DISTINCT), SUM(DISTINCT), and COUNT(DISTINCT) are supported.</p>
+
+<p>AVG(DISTINCT) and SUM(DISTINCT) take a single argument.</p>
+
+<p>COUNT(DISTINCT) can have more than one column argument.</p>
+
+<ul>
+  <li>There must be no GROUP BY or DISTINCT clause in the query.</li>
+  <li>The loose scan limitations described earlier still apply.</li>
+</ul>
+
+<blockquote>
+  <p>Assume that there is an index idx(c1,c2,c3) on table t1(c1,c2,c3,c4). The loose index scan access method can be used for the following queries:</p>
+</blockquote>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>SELECT COUNT(DISTINCT c1), SUM(DISTINCT c1) FROM t1;
+
+SELECT COUNT(DISTINCT c1, c2), COUNT(DISTINCT c2, c1) FROM t1;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="tight-index-scan-紧凑索引扫描">Tight Index Scan-紧凑索引扫描</h1>
+
+<blockquote>
+  <p>A tight index scan may be either a full index scan or a range index scan, depending on the query conditions.</p>
+</blockquote>
+
+<p><strong>紧凑索引扫描即，要么是覆盖索引扫描或者范围索引扫描，依查询条件而定。</strong></p>
+
+<blockquote>
+  <p>When the conditions for a loose index scan are not met, it still may be possible to avoid creation of temporary tables for GROUP BY queries. If there are range conditions in the WHERE clause, this method reads only the keys that satisfy these conditions. Otherwise, it performs an index scan. Because this method reads all keys in each range defined by the WHERE clause, or scans the whole index if there are no range conditions, we term it a tight index scan. With a tight index scan, the grouping operation is performed only after all keys that satisfy the range conditions have been found.</p>
+</blockquote>
+
+<p><strong>在没有满足loose index scan之前，GROUP BY查询同样是可以避免创建临时表的。如果在WHERE中有range条件，MySQL会扫描这些字段。此外，更趋向于索引扫描。因为这种方法扫描所有符合WHERE条件range中的字段，或者所有字段（没有range条件时），所以称之为tight index scan。</strong></p>
+
+<blockquote>
+  <p>Assume that there is an index idx(c1,c2,c3) on table t1(c1,c2,c3,c4). The following queries do not work with the loose index scan access method described earlier, but still work with the tight index scan access method.</p>
+</blockquote>
+
+<p><strong>不能用loose index scan，但是能使用tight index scan的情况：</strong></p>
+
+<p>There is a gap in the GROUP BY, but it is covered by the condition c2 = ‘a’:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>SELECT c1, c2, c3 FROM t1 WHERE c2 = 'a' GROUP BY c1, c3;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The GROUP BY does not begin with the first part of the key, but there is a condition that provides a constant for that part:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>SELECT c1, c2, c3 FROM t1 WHERE c1 = 'a' GROUP BY c2, c3;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2019-09-10">10 Sep 2019</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL">#MySQL</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2019/09/mysql-onlineddl-error-the-total-number-of-locks-exceeds-the-lock-table-size/"> &laquo; MySQL使用原生OnlineDDL进行结构变更报错：The total number of locks exceeds the lock table size</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2019/09/mysql-duplicate-check-tool-pt-duplicate-key-checker/">MySQL重复索引检查工具：pt-duplicate-key-checker &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

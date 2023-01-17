@@ -1,0 +1,68 @@
+---
+id: 677
+title: 高并发下比AtomicLong性能更好的LongAdder
+date: '2019-09-23T17:12:14+08:00'
+author: Smile
+layout: post
+guid: 'http://codercoder.cn/?p=677'
+permalink: /index.php/2019/09/longadder/
+views:
+    - '21259'
+    - '21259'
+    - '21259'
+    - '21259'
+    - '21259'
+bigfa_ding:
+    - '3'
+categories:
+    - Tech
+tags:
+    - Java
+    - Tech
+---
+
+###### 前言
+
+JDK1.8相对之前版本做了很多多线程性能方面的优化，今天来看看AtomicLong和LongAdder（1.8新增），这两个类都是可以对一个Long数值进行原子类的操作增加或减少，用于计数。
+
+###### AtomicLong原理
+
+![](http://codercoder.cn/wp-content/uploads/2019/09/2019-09-2362.png)  
+AtomicLong修改值最终是通过cas操作来修改的，如果没有更新成功，会在循环重新尝试更新。
+
+###### LongAdder原理
+
+有了AtomicLong之后，为什么还需要有LongAdder呢？LongAdder主要是为了在多线程并发高场景下使用，性能比AtomicLong更好。
+
+AtomicLong在多线程下一直都是在更新一个热点数据value值，而LongAdder就通过将单个节点的并发修改分散到多个节点上，就相当于是在更新不同的value值，冲突少。
+
+这个类里最主要的两个方法，add和sum。  
+先看下add方法实现：  
+![](http://codercoder.cn/wp-content/uploads/2019/09/2019-09-2366.png)  
+1.如果cell为空，没有冲突的情况下，都是通过更新base值就成功，这个是为了在低并发的情况下性能也能和AtomicLong差不多。  
+2.如果cell不为空，则会根据当前线程的threadLocalRandomProbe值取模计算在cell数组中的位置，如果数组所在位置cell不为空，则cas方式更新相应的value值。  
+3.如果为空则会最后执行longAccumulate方法。
+
+longAccumulate逻辑（代码比较长，考虑扩容等并发情况，大概说下逻辑）：  
+1.如果当前线程定位到cell数组的位置为null，则会创建一个新的cell并将本次值赋值给cell的value值  
+2.如果不为空，则尝试通过定位到的cell去cas更新
+
+sum方法实现：  
+![](http://codercoder.cn/wp-content/uploads/2019/09/2019-09-2384.png)  
+这里就会遍历Cell数组里的所有值，加上base全部加一起返回。
+
+###### 性能测试
+
+网上别人这个测试已经说的比较详细了  
+http://blog.palominolabs.com/2014/02/10/java-8-performance-improvements-longadder-vs-atomiclong/  
+但是这里并不要看到里面第一张图，就以为是在一个线程的时候AtomicLong性能高，而二个线程的时候AtomicLong就比LongAdder差很多了，并不是的。关键这里还是得看他的测试代码，他测试代码里面主要是每个线程会for循环加1000000次，所以跟一个线程加一次还是有区别的。
+
+###### 是不是可以废弃掉AtomicLong，全使用LongAdder呢
+
+答案并不是的：  
+– 首先，AtomicLong API比较丰富，提供了incrementAndGet\\getAndAdd等很方便的操作，而LongAdder主要是add\\sum（用于取值）方法  
+– 由于LongAdder的取值sum方法是遍历了所有的cell，然后值相加得到，所以可能存在在获取值的时候cell的值有并发更新，统计的值有误差
+
+###### 总结
+
+线程冲突不高情况下，使用AtomicLong是比较好，冲突高情况下使用LongAdder性能更好。相应的还有AtomicDouble vs DoubleAdder

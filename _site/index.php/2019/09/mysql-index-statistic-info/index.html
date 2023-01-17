@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL索引统计信息 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL索引统计信息 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL索引统计信息" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together." />
+<meta property="og:description" content="DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together." />
+<link rel="canonical" href="http://localhost:4000/index.php/2019/09/mysql-index-statistic-info/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2019/09/mysql-index-statistic-info/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-09-11T11:24:30+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2019/09/mysql-index-statistic-info/","headline":"MySQL索引统计信息","dateModified":"2019-09-11T11:24:30+08:00","datePublished":"2019-09-11T11:24:30+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2019/09/mysql-index-statistic-info/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL索引统计信息&url=http://localhost:4000/index.php/2019/09/mysql-index-statistic-info/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2019/09/mysql-index-statistic-info/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2019/09/mysql-index-statistic-info/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL索引统计信息</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <p><img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1159.jpg" alt="" /></p>
+
+<h1 id="背景">背景</h1>
+
+<p>上一篇文章中(<a href="http://codercoder.cn/index.php/2019/09/11/mysql-index-statistics-table">MySQL索引统计信息information_schema.INDEX_STATISTICS</a>)提到了在MySQL的社区版本中，都提供了对于索引统计信息的表，但是，在官方的MySQL版本中，是怎么维护索引（或表）的统计信息的呢？</p>
+
+<p>官方MySQL中，有performance_schema数据库，主要功能即为监控MySQL server的性能指标，不同的指标对应不同表（表的存储引擎为PERFORMANCE_SCHEMA），在MySQL5.7开始，有sys数据库，其中包含了多个视图，展示了PERFORMANCE_SCHEMA中的数据集合，使其更具可读性。</p>
+
+<p>本片文章主要阐述使用索引统计信息的过程，对于performance_schema的说明，可以查阅官方文档，有更详细的说明：<a href="https://dev.mysql.com/doc/refman/8.0/en/performance-schema.html">Chapter 26 MySQL Performance Schema</a></p>
+
+<p>在 MySQL 中，有两种存储索引统计的方式，可以通过设置参数 innodb_stats_persistent 的值来选择：<br />
+ 设置为 on 的时候，表示统计信息会持久化存储。这时，默认的 N 是 20，M 是 10。<br />
+ 设置为 off 的时候，表示统计信息只存储在内存中。这时，默认的 N 是 8，M 是 16。</p>
+
+<p>.</p>
+
+<h1 id="在performance_schema中查看统计信息">在performance_schema中查看统计信息</h1>
+
+<p>使用performance_schema进行统计信息的手机，需要在数据库启动时加入参数：<strong>performance_schema=ON</strong>，不可以在运行时进行更改。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>mysql&gt; set global performance_schema=on;
+ERROR 1238 (HY000): Variable 'performance_schema' is a read only variable
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>打开之后，可以查看统计信息表：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+</pre></td><td class="rouge-code"><pre>mysql&amp;gt; show create table performance_schema.table_io_waits_summary_by_index_usage \G
+*************************** 1. row ***************************
+       Table: table_io_waits_summary_by_index_usage
+Create Table: CREATE TABLE if not exists `table_io_waits_summary_by_index_usage` (
+  `OBJECT_TYPE` varchar(64) DEFAULT NULL,
+  `OBJECT_SCHEMA` varchar(64) DEFAULT NULL,
+  `OBJECT_NAME` varchar(64) DEFAULT NULL,
+  `INDEX_NAME` varchar(64) DEFAULT NULL,
+  `COUNT_STAR` bigint(20) unsigned NOT NULL,
+  `SUM_TIMER_WAIT` bigint(20) unsigned NOT NULL,
+  `MIN_TIMER_WAIT` bigint(20) unsigned NOT NULL,
+  `AVG_TIMER_WAIT` bigint(20) unsigned NOT NULL,
+  `MAX_TIMER_WAIT` bigint(20) unsigned NOT NULL,
+  `COUNT_READ` bigint(20) unsigned NOT NULL,
+  `SUM_TIMER_READ` bigint(20) unsigned NOT NULL,
+  `MIN_TIMER_READ` bigint(20) unsigned NOT NULL,
+  `AVG_TIMER_READ` bigint(20) unsigned NOT NULL,
+  `MAX_TIMER_READ` bigint(20) unsigned NOT NULL,
+  `COUNT_WRITE` bigint(20) unsigned NOT NULL,
+  `SUM_TIMER_WRITE` bigint(20) unsigned NOT NULL,
+  `MIN_TIMER_WRITE` bigint(20) unsigned NOT NULL,
+  `AVG_TIMER_WRITE` bigint(20) unsigned NOT NULL,
+  `MAX_TIMER_WRITE` bigint(20) unsigned NOT NULL,
+  `COUNT_FETCH` bigint(20) unsigned NOT NULL,
+  `SUM_TIMER_FETCH` bigint(20) unsigned NOT NULL,
+  `MIN_TIMER_FETCH` bigint(20) unsigned NOT NULL,
+  `AVG_TIMER_FETCH` bigint(20) unsigned NOT NULL,
+  `MAX_TIMER_FETCH` bigint(20) unsigned NOT NULL,
+  `COUNT_INSERT` bigint(20) unsigned NOT NULL,
+  `SUM_TIMER_INSERT` bigint(20) unsigned NOT NULL,
+  `MIN_TIMER_INSERT` bigint(20) unsigned NOT NULL,
+  `AVG_TIMER_INSERT` bigint(20) unsigned NOT NULL,
+  `MAX_TIMER_INSERT` bigint(20) unsigned NOT NULL,
+  `COUNT_UPDATE` bigint(20) unsigned NOT NULL,
+  `SUM_TIMER_UPDATE` bigint(20) unsigned NOT NULL,
+  `MIN_TIMER_UPDATE` bigint(20) unsigned NOT NULL,
+  `AVG_TIMER_UPDATE` bigint(20) unsigned NOT NULL,
+  `MAX_TIMER_UPDATE` bigint(20) unsigned NOT NULL,
+  `COUNT_DELETE` bigint(20) unsigned NOT NULL,
+  `SUM_TIMER_DELETE` bigint(20) unsigned NOT NULL,
+  `MIN_TIMER_DELETE` bigint(20) unsigned NOT NULL,
+  `AVG_TIMER_DELETE` bigint(20) unsigned NOT NULL,
+  `MAX_TIMER_DELETE` bigint(20) unsigned NOT NULL,
+  UNIQUE KEY `OBJECT` (`OBJECT_TYPE`,`OBJECT_SCHEMA`,`OBJECT_NAME`,`INDEX_NAME`)
+) ENGINE=PERFORMANCE_SCHEMA DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+1 row in set (0.00 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>查看文档中对于该表的介绍：<br />
+<a href="https://dev.mysql.com/doc/refman/8.0/en/table-waits-summary-tables.html#table-io-waits-summary-by-index-usage-table">26.12.16.8.2 The table_io_waits_summary_by_index_usage Table</a></p>
+
+<p>table_io_waits_summary_by_index_usage表整合了所有索引的I/O操作信息该表的列分类（同table_io_waits_summary_by_table 相同），按照(OBJECT_TYPE, OBJECT_SCHEMA, OBJECT_NAME)这三个字段进行group。</p>
+
+<h2 id="指标分类">指标分类：</h2>
+
+<p><strong>COUNT_STAR, SUM_TIMER_WAIT, MIN_TIMER_WAIT, AVG_TIMER_WAIT, MAX_TIMER_WAIT</strong><br />
+These columns aggregate all I/O operations. They are the same as the sum of the corresponding xxx_READ and xxx_WRITE columns.<br />
+对应xxx_READ 和 xxx_WRITE 列的和</p>
+
+<p><strong>COUNT_READ, SUM_TIMER_READ, MIN_TIMER_READ, AVG_TIMER_READ, MAX_TIMER_READ</strong><br />
+These columns aggregate all read operations. They are the same as the sum of the corresponding xxx_FETCH columns.<br />
+对应xxx_FETCH 列的和</p>
+
+<p><strong>COUNT_WRITE, SUM_TIMER_WRITE, MIN_TIMER_WRITE, AVG_TIMER_WRITE, MAX_TIMER_WRITE</strong><br />
+These columns aggregate all write operations. They are the same as the sum of the corresponding xxx_INSERT, xxx_UPDATE, and xxx_DELETE columns.<br />
+对应 xxx_INSERT，xxx_UPDATE，xxx_DELETE三个值的和</p>
+
+<p><strong>COUNT_FETCH, SUM_TIMER_FETCH, MIN_TIMER_FETCH, AVG_TIMER_FETCH, MAX_TIMER_FETCH</strong><br />
+These columns aggregate all fetch operations.<br />
+所有的select操作次数</p>
+
+<p><strong>COUNT_INSERT, SUM_TIMER_INSERT, MIN_TIMER_INSERT, AVG_TIMER_INSERT, MAX_TIMER_INSERT</strong><br />
+These columns aggregate all insert operations.<br />
+所有的insert操作次数</p>
+
+<p><strong>COUNT_UPDATE, SUM_TIMER_UPDATE, MIN_TIMER_UPDATE, AVG_TIMER_UPDATE, MAX_TIMER_UPDATE</strong><br />
+These columns aggregate all update operations.<br />
+所有的update 操作次数</p>
+
+<p><strong>COUNT_DELETE, SUM_TIMER_DELETE, MIN_TIMER_DELETE, AVG_TIMER_DELETE, MAX_TIMER_DELETE</strong><br />
+These columns aggregate all delete operations.<br />
+所有的delete 操作次数<br />
+.</p>
+
+<p>对于INDEX_NAME列：<br />
+1. A value of PRIMARY indicates that table I/O used the primary index.<br />
+2. A value of NULL means that table I/O used no index.<br />
+3. Inserts are counted against INDEX_NAME = NULL</p>
+
+<h2 id="举例">举例</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>&lt;br&gt;&lt;/br&gt;mysql&amp;gt; select * from performance_schema.table_io_waits_summary_by_index_usage where object_schema='wstest' and object_name='test2' limit 10 ;
++-------------+---------------+-------------+------------+------------+----------------+----------------+----------------+----------------+------------+----------------+----------------+----------------+----------------+-------------+-----------------+-----------------+-----------------+-----------------+-------------+-----------------+-----------------+-----------------+-----------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+
+| OBJECT_TYPE | OBJECT_SCHEMA | OBJECT_NAME | INDEX_NAME | COUNT_STAR | SUM_TIMER_WAIT | MIN_TIMER_WAIT | AVG_TIMER_WAIT | MAX_TIMER_WAIT | COUNT_READ | SUM_TIMER_READ | MIN_TIMER_READ | AVG_TIMER_READ | MAX_TIMER_READ | COUNT_WRITE | SUM_TIMER_WRITE | MIN_TIMER_WRITE | AVG_TIMER_WRITE | MAX_TIMER_WRITE | COUNT_FETCH | SUM_TIMER_FETCH | MIN_TIMER_FETCH | AVG_TIMER_FETCH | MAX_TIMER_FETCH | COUNT_INSERT | SUM_TIMER_INSERT | MIN_TIMER_INSERT | AVG_TIMER_INSERT | MAX_TIMER_INSERT | COUNT_UPDATE | SUM_TIMER_UPDATE | MIN_TIMER_UPDATE | AVG_TIMER_UPDATE | MAX_TIMER_UPDATE | COUNT_DELETE | SUM_TIMER_DELETE | MIN_TIMER_DELETE | AVG_TIMER_DELETE | MAX_TIMER_DELETE |
++-------------+---------------+-------------+------------+------------+----------------+----------------+----------------+----------------+------------+----------------+----------------+----------------+----------------+-------------+-----------------+-----------------+-----------------+-----------------+-------------+-----------------+-----------------+-----------------+-----------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+
+| TABLE       | wstest        | test2       | PRIMARY    |          6 |      139617054 |        8265600 |       23269509 |       42271164 |          0 |              0 |              0 |              0 |              0 |           6 |       139617054 |         8265600 |        23269509 |        42271164 |           0 |               0 |               0 |               0 |               0 |            0 |                0 |                0 |                0 |                0 |            6 |        139617054 |          8265600 |         23269509 |         42271164 |            0 |                0 |                0 |                0 |                0 |
+| TABLE       | wstest        | test2       | idx_name   |          7 |       69869781 |        6575211 |        9981081 |       23699394 |          7 |       69869781 |        6575211 |        9981081 |       23699394 |           0 |               0 |               0 |               0 |               0 |           7 |        69869781 |         6575211 |         9981081 |        23699394 |            0 |                0 |                0 |                0 |                0 |            0 |                0 |                0 |                0 |                0 |            0 |                0 |                0 |                0 |                0 |
+| TABLE       | wstest        | test2       | NULL       |         25 |      249500088 |         836154 |        9979974 |       72511083 |         19 |       76699233 |         836154 |        4036491 |       28997865 |           6 |       172800855 |        10806903 |        28800081 |        72511083 |          19 |        76699233 |          836154 |         4036491 |        28997865 |            6 |        172800855 |         10806903 |         28800081 |         72511083 |            0 |                0 |                0 |                0 |                0 |            0 |                0 |                0 |                0 |                0 |
++-------------+---------------+-------------+------------+------------+----------------+----------------+----------------+----------------+------------+----------------+----------------+----------------+----------------+-------------+-----------------+-----------------+-----------------+-----------------+-------------+-----------------+-----------------+-----------------+-----------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+
+3 rows in set (0.00 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以看出，对于test2表，PRIMARY主键共使用了6次（COUNT_WRITE=6，即按照主键顺序写入了6行数据），idx_name供使用了7次（COUNT_READ=7，读了7行），再次读取后查看状态：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+</pre></td><td class="rouge-code"><pre>mysql&amp;gt; explain select * from wstest.test2 where name='111xyz';
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys | key      | key_len | ref   | rows | filtered | Extra |
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | test2 | NULL       | ref  | idx_name      | idx_name | 93      | const |    6 |   100.00 | NULL  |
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+
+
+mysql&amp;gt; select * from wstest.test2 where name='111xyz';   
++----+--------+--------+------+-------+
+| id | name   | status | addr | addr2 |
++----+--------+--------+------+-------+
+|  1 | 111xyz |    110 |      |     0 |
+|  2 | 111xyz |    110 |      |     0 |
+|  3 | 111xyz |    110 |      |     0 |
+|  4 | 111xyz |    110 |      |     0 |
+|  5 | 111xyz |      5 |      |     0 |
+|  6 | 111xyz |    110 |      |     0 |
++----+--------+--------+------+-------+
+6 rows in set (0.00 sec)
+
+mysql&amp;gt; select * from performance_schema.table_io_waits_summary_by_index_usage where object_schema='wstest' and object_name='test2' limit 10  ;
++-------------+---------------+-------------+------------+------------+----------------+----------------+----------------+----------------+------------+----------------+----------------+----------------+----------------+-------------+-----------------+-----------------+-----------------+-----------------+-------------+-----------------+-----------------+-----------------+-----------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+
+| OBJECT_TYPE | OBJECT_SCHEMA | OBJECT_NAME | INDEX_NAME | COUNT_STAR | SUM_TIMER_WAIT | MIN_TIMER_WAIT | AVG_TIMER_WAIT | MAX_TIMER_WAIT | COUNT_READ | SUM_TIMER_READ | MIN_TIMER_READ | AVG_TIMER_READ | MAX_TIMER_READ | COUNT_WRITE | SUM_TIMER_WRITE | MIN_TIMER_WRITE | AVG_TIMER_WRITE | MAX_TIMER_WRITE | COUNT_FETCH | SUM_TIMER_FETCH | MIN_TIMER_FETCH | AVG_TIMER_FETCH | MAX_TIMER_FETCH | COUNT_INSERT | SUM_TIMER_INSERT | MIN_TIMER_INSERT | AVG_TIMER_INSERT | MAX_TIMER_INSERT | COUNT_UPDATE | SUM_TIMER_UPDATE | MIN_TIMER_UPDATE | AVG_TIMER_UPDATE | MAX_TIMER_UPDATE | COUNT_DELETE | SUM_TIMER_DELETE | MIN_TIMER_DELETE | AVG_TIMER_DELETE | MAX_TIMER_DELETE |
++-------------+---------------+-------------+------------+------------+----------------+----------------+----------------+----------------+------------+----------------+----------------+----------------+----------------+-------------+-----------------+-----------------+-----------------+-----------------+-------------+-----------------+-----------------+-----------------+-----------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+
+| TABLE       | wstest        | test2       | PRIMARY    |          6 |      139617054 |        8265600 |       23269509 |       42271164 |          0 |              0 |              0 |              0 |              0 |           6 |       139617054 |         8265600 |        23269509 |        42271164 |           0 |               0 |               0 |               0 |               0 |            0 |                0 |                0 |                0 |                0 |            6 |        139617054 |          8265600 |         23269509 |         42271164 |            0 |                0 |                0 |                0 |                0 |
+| TABLE       | wstest        | test2       | idx_name   |         13 |      164544849 |        6575211 |       12657069 |       74654973 |         13 |      164544849 |        6575211 |       12657069 |       74654973 |           0 |               0 |               0 |               0 |               0 |          13 |       164544849 |         6575211 |        12657069 |        74654973 |            0 |                0 |                0 |                0 |                0 |            0 |                0 |                0 |                0 |                0 |            0 |                0 |                0 |                0 |                0 |
+| TABLE       | wstest        | test2       | NULL       |         25 |      249500088 |         836154 |        9979974 |       72511083 |         19 |       76699233 |         836154 |        4036491 |       28997865 |           6 |       172800855 |        10806903 |        28800081 |        72511083 |          19 |        76699233 |          836154 |         4036491 |        28997865 |            6 |        172800855 |         10806903 |         28800081 |         72511083 |            0 |                0 |                0 |                0 |                0 |            0 |                0 |                0 |                0 |                0 |
++-------------+---------------+-------------+------------+------------+----------------+----------------+----------------+----------------+------------+----------------+----------------+----------------+----------------+-------------+-----------------+-----------------+-----------------+-----------------+-------------+-----------------+-----------------+-----------------+-----------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+--------------+------------------+------------------+------------------+------------------+
+3 rows in set (0.00 sec)
+
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>得到，<strong>再次使用idx_name查询数据时，返回了6条数据，在统计结果中，idx_name的COUNT_STAR从7增加到了13（均为COUNT_READ，COUNT_READ从7变为13）</strong>，据此，可使用该统计信息判断索引使用的频次。</p>
+
+<h1 id="sys库中的统计信息">sys库中的统计信息</h1>
+
+<p>sys数据库中整合了performance_schema数据库的指标，例如：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>mysql&amp;gt; show create table sys.schema_index_statistics \G    
+*************************** 1. row ***************************
+                View: schema_index_statistics
+         Create View: CREATE ALGORITHM=MERGE DEFINER=`mysql.sys`@`localhost` SQL SECURITY INVOKER VIEW `sys`.`schema_index_statistics` (`table_schema`,`table_name`,`index_name`,`rows_selected`,`select_latency`,`rows_inserted`,`insert_latency`,`rows_updated`,`update_latency`,`rows_deleted`,`delete_latency`) AS select `performance_schema`.`table_io_waits_summary_by_index_usage`.`OBJECT_SCHEMA` AS `table_schema`,`performance_schema`.`table_io_waits_summary_by_index_usage`.`OBJECT_NAME` AS `table_name`,`performance_schema`.`table_io_waits_summary_by_index_usage`.`INDEX_NAME` AS `index_name`,`performance_schema`.`table_io_waits_summary_by_index_usage`.`COUNT_FETCH` AS `rows_selected`,`sys`.`format_time`(`performance_schema`.`table_io_waits_summary_by_index_usage`.`SUM_TIMER_FETCH`) AS `select_latency`,`performance_schema`.`table_io_waits_summary_by_index_usage`.`COUNT_INSERT` AS `rows_inserted`,`sys`.`format_time`(`performance_schema`.`table_io_waits_summary_by_index_usage`.`SUM_TIMER_INSERT`) AS `insert_latency`,`performance_schema`.`table_io_waits_summary_by_index_usage`.`COUNT_UPDATE` AS `rows_updated`,`sys`.`format_time`(`performance_schema`.`table_io_waits_summary_by_index_usage`.`SUM_TIMER_UPDATE`) AS `update_latency`,`performance_schema`.`table_io_waits_summary_by_index_usage`.`COUNT_DELETE` AS `rows_deleted`,`sys`.`format_time`(`performance_schema`.`table_io_waits_summary_by_index_usage`.`SUM_TIMER_DELETE`) AS `delete_latency` from `performance_schema`.`table_io_waits_summary_by_index_usage` where (`performance_schema`.`table_io_waits_summary_by_index_usage`.`INDEX_NAME` is not null) order by `performance_schema`.`table_io_waits_summary_by_index_usage`.`SUM_TIMER_WAIT` desc
+character_set_client: utf8mb4
+collation_connection: utf8mb4_0900_ai_ci
+1 row in set (0.00 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>与之对应的sys.x$schema_index_statistics则提供了更为精确的value，方便工具进行调用。</p>
+
+<h2 id="举例-1">举例</h2>
+
+<p>查询：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>mysql&amp;gt; select * from sys.schema_index_statistics where table_schema='wstest' and table_name='test2';
++--------------+------------+------------+---------------+----------------+---------------+----------------+--------------+----------------+--------------+----------------+
+| table_schema | table_name | index_name | rows_selected | select_latency | rows_inserted | insert_latency | rows_updated | update_latency | rows_deleted | delete_latency |
++--------------+------------+------------+---------------+----------------+---------------+----------------+--------------+----------------+--------------+----------------+
+| wstest       | test2      | PRIMARY    |             0 | 0 ps           |             0 | 0 ps           |            6 | 139.62 us      |            0 | 0 ps           |
+| wstest       | test2      | idx_name   |             7 | **69.87 us**       |             0 | 0 ps           |            0 | 0 ps           |            0 | 0 ps           |
++--------------+------------+------------+---------------+----------------+---------------+----------------+--------------+----------------+--------------+----------------+
+2 rows in set (0.00 sec)
+
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>对应之前的再次按照idx_name查询，再次查询sys的统计信息：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>mysql&amp;gt; select * from sys.schema_index_statistics where table_schema='wstest' and table_name='test2';
++--------------+------------+------------+---------------+----------------+---------------+----------------+--------------+----------------+--------------+----------------+
+| table_schema | table_name | index_name | rows_selected | select_latency | rows_inserted | insert_latency | rows_updated | update_latency | rows_deleted | delete_latency |
++--------------+------------+------------+---------------+----------------+---------------+----------------+--------------+----------------+--------------+----------------+
+| wstest       | test2      | idx_name   |            13 | **164.54 us**      |             0 | 0 ps           |            0 | 0 ps           |            0 | 0 ps           |
+| wstest       | test2      | PRIMARY    |             0 | 0 ps           |             0 | 0 ps           |            6 | 139.62 us      |            0 | 0 ps           |
++--------------+------------+------------+---------------+----------------+---------------+----------------+--------------+----------------+--------------+----------------+
+2 rows in set (0.00 sec)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2019-09-11">11 Sep 2019</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL">#MySQL</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2019/09/mysql-index-statistics-table/"> &laquo; MySQL索引统计信息INDEX_STATISTICS</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2019/09/glance-show-linux-status/">安装及使用glance &#8211;查看Linux性能命令 &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

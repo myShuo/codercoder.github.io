@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL手记18 &#8212; MySQL高可用及复制管理工具Orchestrator | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL手记18 — MySQL高可用及复制管理工具Orchestrator | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL手记18 — MySQL高可用及复制管理工具Orchestrator" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Orchestrator是一款提供页面和命令行和MySQL高可用和复制拓扑关系管理工具，Github也使用了Orchestrator进行了MySQL高可用拓扑结构的管理。还能进行主从等切换，只需在页面上进行节点的拖拽，就能完成切换。" />
+<meta property="og:description" content="Orchestrator是一款提供页面和命令行和MySQL高可用和复制拓扑关系管理工具，Github也使用了Orchestrator进行了MySQL高可用拓扑结构的管理。还能进行主从等切换，只需在页面上进行节点的拖拽，就能完成切换。" />
+<link rel="canonical" href="http://localhost:4000/index.php/2020/05/mysql-note-18-using-orchestrator-to-manage-mysql-high-availability/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2020/05/mysql-note-18-using-orchestrator-to-manage-mysql-high-availability/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:image" content="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1024.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-05-10T15:54:50+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2020/05/mysql-note-18-using-orchestrator-to-manage-mysql-high-availability/","headline":"MySQL手记18 — MySQL高可用及复制管理工具Orchestrator","dateModified":"2020-05-10T15:54:50+08:00","datePublished":"2020-05-10T15:54:50+08:00","image":"http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1024.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2020/05/mysql-note-18-using-orchestrator-to-manage-mysql-high-availability/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"Orchestrator是一款提供页面和命令行和MySQL高可用和复制拓扑关系管理工具，Github也使用了Orchestrator进行了MySQL高可用拓扑结构的管理。还能进行主从等切换，只需在页面上进行节点的拖拽，就能完成切换。","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL手记18 &#8212; MySQL高可用及复制管理工具Orchestrator&url=http://localhost:4000/index.php/2020/05/mysql-note-18-using-orchestrator-to-manage-mysql-high-availability/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2020/05/mysql-note-18-using-orchestrator-to-manage-mysql-high-availability/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2020/05/mysql-note-18-using-orchestrator-to-manage-mysql-high-availability/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL手记18 &#8212; MySQL高可用及复制管理工具Orchestrator</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1024.png" alt="MySQL手记18 &#8212; MySQL高可用及复制管理工具Orchestrator">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <p>Orchestrator是一款提供页面和命令行和MySQL高可用和复制拓扑关系管理工具，可以用其方便的管理和调整拓扑结构。著名交友网站“Github”也使用了Orchestrator进行了MySQL高可用拓扑结构的管理。</p>
+
+<p>除了直观的展示拓扑关系外，还能进行主从、双主等花式切换，只需在页面上进行节点的拖拽，就能完成切换，可以说非常直观有效。<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1024.png"><img src="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1024.png" alt="" /></a></p>
+
+<h1 id="一安装部署">一、安装部署</h1>
+
+<h2 id="1下载安装">（1）下载安装</h2>
+
+<p>下载Orchestrator的安装包，解压后编辑<strong>orchestrator.conf.json</strong>文件：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>...
+"MySQLOrchestratorHost": "127.0.0.1",
+"MySQLOrchestratorPort": 3306,
+"MySQLOrchestratorDatabase": "orchestrator",
+"MySQLOrchestratorUser": "orchestrator",
+"MySQLOrchestratorPassword": "orch_backend_password",
+...
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="2授权">（2）授权</h2>
+
+<p>Orchestrator的元数据信息需要使用MySQL或者Sqlite进行管理，所以需要在数据库中授予相应的权限.</p>
+
+<p>Orchestrator所需的元数据库建库：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>CREATE DATABASE IF NOT EXISTS orchestrator;
+CREATE USER 'orchestrator'@'127.0.0.1' IDENTIFIED BY 'orch_backend_password';
+GRANT ALL PRIVILEGES ON `orchestrator`.* TO 'orchestrator'@'127.0.0.1';
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>添加的实例数据源授权：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>CREATE USER 'orchestrator'@'orch_host' IDENTIFIED BY 'orch_topology_password';
+GRANT SUPER, PROCESS, REPLICATION SLAVE, RELOAD ON *.* TO 'orchestrator'@'orch_host';
+GRANT SELECT ON mysql.slave_master_info TO 'orchestrator'@'orch_host';
+GRANT SELECT ON ndbinfo.processes TO 'orchestrator'@'orch_host'; -- Only for NDB Cluster
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>权限说明：<br />
+ <em>REPLICATION SLAVE is required for SHOW SLAVE HOSTS, and for scanning binary logs in favor of Pseudo GTID RELOAD required for RESET SLAVE operation PROCESS required to see replica processes in SHOW PROCESSLIST On MySQL 5.6 and above, and if using master_info_repository = ‘TABLE’, let orchestrator have access to the mysql.slave_master_info table. This will allow orchestrator to grab replication credentials if need be.</em></p>
+
+<h2 id="3启动">（3）启动</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>cd /usr/local/orchestrator &amp;amp;&amp;amp; ./orchestrator --debug --config=/path/to/config.file http
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>参考：https://github.com/openark/orchestrator/blob/master/docs/install.md</p>
+
+<h1 id="二使用介绍">二、使用介绍</h1>
+
+<h2 id="21-基础面板">2.1 基础面板</h2>
+
+<p>安装完成后，打开页面（默认端口为3000），Home —-&gt; About中有Orchestrator的介绍：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1042.png"><img src="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1042.png" alt="" /></a></p>
+
+<p>选择Cluster —-&gt; Dashboard，即可看到集群的拓扑情况。</p>
+
+<h3 id="1展示">（1）展示</h3>
+
+<p>部署好一个主从集群，添加到Orchestrator中：在Orchestrator中选择Cluster—-&gt;Discover：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1046.png"><img src="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1046.png" alt="" /></a></p>
+
+<p>填写数据库的信息：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1067.png"><img src="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1067.png" alt="" /></a></p>
+
+<p>若填写的是从库的信息，则会自动把主库实例也添加进来（show slave status得到的主库的信息），可以看到新添加的集群的Instances = 2：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1050.png"><img src="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1050.png" alt="" /></a></p>
+
+<p>在Cluster —-&gt; Dashboard中，选择需要管理的集群，进入后，即可看到拓扑情况：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1092.png"><img src="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1092.png" alt="" /></a></p>
+
+<p><strong>点击各个节点上的设置按钮，</strong>可以看到节点连接的详细信息，并且可以修改其中的部分配置：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1090.png"><img src="http://codercoder.cn/wp-content/uploads/2020/05/2020-05-1090.png" alt="" /></a></p>
+
+<h2 id="22-基础测试">2.2 基础测试</h2>
+
+<h3 id="1主从---双主">（1）主从 —-&gt; 双主</h3>
+
+<p><strong>Orchestrator在切换时，并不是暴力的进行切换，而是会去避免出现数据不一致的情况。</strong>例如若需要将主从 —-&gt; 双主的时候，会提示需要先将原来的从库设置为read-only，才能切换为双主：</p>
+
+<div class="aiovg-player-container" style="max-width: 100%;"><div class="aiovg-player" style="padding-bottom: 56.25%;"><iframe allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" frameborder="0" height="315" mozallowfullscreen="" scrolling="no" src="http://codercoder.cn/index.php/player-embed/id/1073/?mp4=http%3A%2F%2Fcodercoder.cn%2Fwp-content%2Fuploads%2F2020%2F05%2F2020-05-1012.mp4" webkitallowfullscreen="" width="560"></iframe></div></div>
+<p><strong>切换后，需要重新在Cluster —-&gt; Dashboard中，选择集群，即可看到已经修改为了co-master集群</strong>。<br />
+ 若需要交换主从，则需要进行再次切换，主库上stop slave后，将原主库拖拽到从库后，即可​。</p>
+
+<h2 id="2同级从库---级联主从">（2）同级从库 —-&gt; 级联主从</h2>
+
+<p>即B,C均为A的从库，现把C切换为B的从库，得到A —-&gt; B —-&gt; C的集群架构：</p>
+
+<div class="aiovg-player-container" style="max-width: 100%;"><div class="aiovg-player" style="padding-bottom: 56.25%;"><iframe allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" frameborder="0" height="315" mozallowfullscreen="" scrolling="no" src="http://codercoder.cn/index.php/player-embed/id/1073/?mp4=http%3A%2F%2Fcodercoder.cn%2Fwp-content%2Fuploads%2F2020%2F05%2F2020-05-1082.mp4" webkitallowfullscreen="" width="560"></iframe></div></div>
+<p>以上介绍了两种常见的情况，当然还有很多花样的切换方式，均可进行拖拽完成，Orchestrator支持命令行的方式进行切换，方便更加自动化的切换维护。</p>
+
+<h1 id="三命令行">三、命令行</h1>
+
+<h2 id="31-列出集群">3.1 列出集群</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>bash-4.4# orchestrator-client -c clusters
+2bd38a52527e:5502
+3a95cdf097fd:4407
+5daa942fb07c:4407
+70b353672cdc:5501
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="32-查看集群状态">3.2 查看集群状态</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>bash-4.4# orchestrator-client -c replication-analysis
+5daa942fb07c:4407 (cluster 5daa942fb07c:4407): ErrantGTIDStructureWarning
+2bd38a52527e:5502 (cluster 2bd38a52527e:5502): DeadMasterWithoutSlaves
+3a95cdf097fd:4407 (cluster 3a95cdf097fd:4407): DeadMasterWithoutSlaves
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="33-查看拓扑关系">3.3 查看拓扑关系</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>bash-4.4# orchestrator-client -c topology-tabulated -i 5daa942fb07c:4407
+5daa942fb07c:4407  |0s|ok|8.0.18|rw|ROW|&amp;gt;&amp;gt;,GTID
++ b96697e765cc:4408|0s|ok|8.0.18|rw|ROW|&amp;gt;&amp;gt;,GTID
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="34-主-主结构">3.4 主-主结构</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>orchestrator-client -c make-co-master -i test1:3307
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="35-同级slave变为自己的slave">3.5 同级slave变为自己的slave</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>orchestrator-client -c take-siblings -i test3:3307
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="36-将实例转换为自己主人的主人切换两个take-master">3.6 将实例转换为自己主人的主人，切换两个：take-master</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>orchestrator-client -c take-master -i test3:3307
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="37-将slave在拓扑上向上移动一级">3.7 将slave在拓扑上向上移动一级</h2>
+
+<p>对应web上的是在Classic Model下进行拖动：move-up</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>bash-4.4# orchestrator-client -c move-up -i b96697e765cc:4408 -d 5daa942fb07c:4407
+b96697e765cc:4408&amp;lt;5daa942fb07c:4407
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>参考：<br />
+https://github.com/openark/orchestrator/blob/master/docs/executing-via-command-line.md</p>
+
+<p>相信看了那么多图，觉得想要蠢蠢欲动想要操作一把，原来数据库的维护也可以如此简单直观，可以说是很贴心的一个工具了。</p>
+
+<p>欢迎关注公众号：<strong>朔的话</strong>：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg" alt="" /></p>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2020-05-10">10 May 2020</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL手记">#MySQL手记</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2020/05/mysql-note-17-mysql-replication-introduction/"> &laquo; MySQL手记17 &#8212; MySQL的复制Replication</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2020/05/recommending-2-solar-opposites/">好剧推荐2 &#8212; 外星也难民(Solar Opposites) &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

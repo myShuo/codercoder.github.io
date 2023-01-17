@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL手记5 &#8212; 数据库升级准备 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL手记5 — 数据库升级准备 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL手记5 — 数据库升级准备" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="数据迁移是一个很重要的过程，需规划严格的流程，并制定回滚方案。对于数据库系统，若能够满足业务需求，都是尽量不动，我曾看到过uptime为10+年的数据库系统，不得不佩服开发人员和产品对于该产品的把控程度。" />
+<meta property="og:description" content="数据迁移是一个很重要的过程，需规划严格的流程，并制定回滚方案。对于数据库系统，若能够满足业务需求，都是尽量不动，我曾看到过uptime为10+年的数据库系统，不得不佩服开发人员和产品对于该产品的把控程度。" />
+<link rel="canonical" href="http://localhost:4000/index.php/2020/04/mysql-5-preparing-for-db-upgrade/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2020/04/mysql-5-preparing-for-db-upgrade/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:image" content="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0929.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-04-09T23:13:11+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2020/04/mysql-5-preparing-for-db-upgrade/","headline":"MySQL手记5 — 数据库升级准备","dateModified":"2020-04-09T23:13:11+08:00","datePublished":"2020-04-09T23:13:11+08:00","image":"http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0929.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2020/04/mysql-5-preparing-for-db-upgrade/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"数据迁移是一个很重要的过程，需规划严格的流程，并制定回滚方案。对于数据库系统，若能够满足业务需求，都是尽量不动，我曾看到过uptime为10+年的数据库系统，不得不佩服开发人员和产品对于该产品的把控程度。","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL手记5 &#8212; 数据库升级准备&url=http://localhost:4000/index.php/2020/04/mysql-5-preparing-for-db-upgrade/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2020/04/mysql-5-preparing-for-db-upgrade/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2020/04/mysql-5-preparing-for-db-upgrade/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL手记5 &#8212; 数据库升级准备</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0929.png" alt="MySQL手记5 &#8212; 数据库升级准备">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <h1 id="一升级前准备">一、升级前准备</h1>
+
+<h2 id="11-备份数据库">1.1 备份数据库</h2>
+
+<p>升级数据库的过程，每一步都需要严格把控，涉及到底层物理存储的变更，容易出现升级后数据库启动失败，或者是升级后数据错乱的风险。所以第一步要做的就是：备份！！<br />
+ 说到备份，可以说是很多DBA的心声，也经常看到没有备份导致公司损失严重的情况。毕竟数据即财产，不完善的保管，丢失了，可就损失重大。<br />
+ 升级后，由于数据的存储结构可能会发生变化，所以除了基本的物理备份（简单理解为复制数据库的物理文件）外，必须要做逻辑备份。逻辑备份为SQL的形式，导出的数据更加的直观可控。并且，需要在测试环境验证备份文件的有效性（例如可尝试在测试环境进行恢复验证）。<br />
+（备份的详细介绍会在后续篇章中介绍）<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0929.png" alt="" /></p>
+
+<h2 id="12-流程">1.2 流程</h2>
+
+<p>在测试环境中，按照升级的流程老老实实走一遍。包括备份、升级、恢复、验证数据等。<br />
+<strong>（1）在原实例升级</strong><br />
+ 部分场景：例如成本控制，又或者是一些小的项目，没有条件部署新的数据库实例，则需要在原实例下进行升级。这个时候就一定要注意备份，防止进退两难！！</p>
+
+<p><strong>（2）在新实例升级</strong><br />
+ 新建一个新版本的数据库实例，把备份文件还原到新的实例中。物理备份的还原很快，相当于是替换了新的数据库实例的数据文件，但是存在数据物理结构不兼容的风险。逻辑恢复很慢，需要把SQL文件一条条执行结束。而且MySQL的还原是单线程的，所以不支持原生的多线程还原。<br />
+ 当然，可以进行一些“类并发”。我们在备份的时候，将没有关联关系的库表按照大小，可以备份为多个文件进行备份，这样，在恢复的时候，我们就可以多个文件一起执行回放，以达到并发恢复的效果。</p>
+
+<p><strong>（3）新建从库</strong><br />
+ 最常用的方式。生产环境的很多应用，都是不能停机的，没有对应的维护时间段给DBA。这个时候，我们需要采取更为平滑的升级方式。<br />
+<strong>“创建从库”</strong>：<br />
+ 即在已有的实例上，新建一个从库，并且保持实时同步。待数据完成同步，延迟降到预测范围内时，应用可以选择在低峰的时段进行逐台切换，业务切换到新的实例上无误，即为升级成功。<br />
+<strong>（由于此方法较为常用，对于此种方式进行升级的过程，会在后续篇章中介绍）</strong><br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0945.png" alt="" /></p>
+
+<h2 id="13-测试">1.3 测试</h2>
+
+<p>不管是上部分说到的任何一个步骤，在升级之前都需要做好测试，考虑可能发生的情况，并且作出相应的解决方案。数据库在底层，很有可能牵一发而动全身，所以任何步骤的测试，都不能松懈。</p>
+
+<h1 id="二验证">二、验证</h1>
+
+<h2 id="21-数据验证">2.1 数据验证</h2>
+
+<p>数据同步后，需要验证源端、目标端的数据是否一致。此时，可以自己通过脚本，或者工具（例如mysqldbcompare）进行。对于部分云厂商的工具，例如AWS的DMS（数据迁移服务），其提供了数据校验的功能，也可以作为迁移验证数据的参考。</p>
+
+<h2 id="22-应用切换验证">2.2 应用切换验证</h2>
+
+<p>**（1）审计日志: **</p>
+
+<p>对于是否切换成功，可以查看源端和目标端的审计日志。切换后：源端子啊一段时间内没有对应应用的审计日志，当然目标端会新增这个应用的审计日志。</p>
+
+<p><strong>（2）慢查询日志：</strong><br />
+ 在没有开启审计日志的环境，可以使用慢查询日志进行判断，适当调低慢查询的阈值（ long_query_time， https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_long_query_time），从而根据日志判断。<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0926.png" alt="" /><br />
+<strong>（3）Processlist：</strong><br />
+ 可以通过执行：<br />
+ <code class="highlighter-rouge">show processlist;</code>（或者查询<strong>information_schema.processlist，</strong> https://dev.mysql.com/doc/refman/8.0/en/processlist-table.html）查看应用的连接情况。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>        总之，数据迁移是一个很重要的过程，需规划严格的流程，并制定回滚方案。对于数据库系统，若能够满足业务需求，都是尽量不动，我曾看到过uptime为10+年的数据库系统，不得不佩服开发人员和产品对于该产品的把控程度。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>欢迎关注公众号：<strong>朔的话</strong>：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg" alt="" /></p>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2020-04-09">09 Apr 2020</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL手记">#MySQL手记</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2020/04/mysql-note-4-sysbench-qps-test/"> &laquo; MySQL手记4 &#8212; Sysbench进行QPS性能测试</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2020/04/mysql-note-6-percona-toolkit-introduction/">MySQL手记6 &#8212; percona-toolkit工具包 &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

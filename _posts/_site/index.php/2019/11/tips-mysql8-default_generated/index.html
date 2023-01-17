@@ -1,0 +1,42 @@
+<h1 id="背景">背景</h1>
+
+<p>最近使用mysqldiff工具进行多源数据表结构对比时（一个数据源为8.0版本，另一个为5.7版本），发现mysqldiff得到的结果中，出现了如下语句：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ALTER TABLE  tb1
+CHANGE COLUMN create_time create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP DEFAULT_GENERATED COMMENT '创建时间';
+
+</code></pre></div></div>
+
+<p>把mysqldiff生成的sql文件在5.7版本中回放mysqldiff的结果时候，报错：<br />
+**ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ‘DEFAULT_GENERATED COMMENT ‘创建时间’, **</p>
+
+<blockquote>
+  <p>所以推测为8.0新增的表结构说明，而5.7版本不兼容</p>
+</blockquote>
+
+<h1 id="解决">解决</h1>
+
+<p>8.0文档对于DEFAULT_GENERATED的说明：<br />
+<strong>DEFAULT_GENERATED for columns that have an expression default value.</strong><br />
+即，在column上若有表达式类型的默认值时，会在该行的Extra列打上DEFAULT_GENERATED的tag</p>
+
+<p><img src="http://codercoder.cn/wp-content/uploads/2019/11/7c92af75372793c7b8ebddadd31d3e61.png" alt="" /></p>
+
+<p><strong>The latest version of mysql is now adding a DEFAULT_GENERATED tag when a default is explicitly set</strong></p>
+
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/show-columns.html" title="https://dev.mysql.com/doc/refman/8.0/en/show-columns.html">https://dev.mysql.com/doc/refman/8.0/en/show-columns.html</a></p>
+
+<p>登录到数据库中，查看该表的columns信息：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2019/11/8fc132f300744dcc09ebb870598a37fb.png" alt="" /></p>
+
+<p>其对于数据无影响，但是在使用mysqldiff工具时候，会把Extra列同样作为一个指标，出现不一致的情况。</p>
+
+<h1 id="解决-1">解决</h1>
+
+<p>可以编辑mysqldiff的结果，删除DEFAULT_GENERATED关键字即可。</p>
+
+<p>附加：<br />
+mysqldiff检查项说明：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2019/11/124229c96998c54231b7021345eba362.png" alt="" /></p>
+
+<p><a href="https://www.percona.com/blog/2015/04/15/checking-table-definition-consistency-mysqldiff/" title="https://www.percona.com/blog/2015/04/15/checking-table-definition-consistency-mysqldiff/">https://www.percona.com/blog/2015/04/15/checking-table-definition-consistency-mysqldiff/</a></p>

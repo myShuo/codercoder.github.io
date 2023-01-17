@@ -1,0 +1,34 @@
+<h1 id="情况介绍">情况介绍</h1>
+
+<p>近日，在两个数据库比对中发现数据不一致的情况，相同的插入语句（由mybatis生成），在查询时，发现其中一个的insert_time为’2018-07-27 10:59:59’，另一个为’2018-07-27 11:00:00’。想到是插入时候时间精度不一致的原因，进行排查。</p>
+
+<p>在审计中可以看到两次的插入datetime不一样，一次为’2018-07-27 10:59:59’，另一哥insert为：’2018-07-27 10:59:59.881’，原因找到，可是基本原理是什么呢？</p>
+
+<p>猜想MySQL进行了“四舍五入”的操作，导致两边数据出现不一致的问题，数据库环境为MySQL 5.6.16，查看官方文档：<a href="https://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html">Fractional Seconds in Time Values</a></p>
+
+<p>MySQL 5.6.4 and up expands fractional seconds support for TIME, DATETIME, and TIMESTAMP values, with up to microseconds (6 digits) precision:</p>
+
+<blockquote>
+  <p>从MySQL 5.6.4起，对于TIME, DATETIME, TIMESTAMP字段，最高可支持到微秒（小数点后6位）的精度</p>
+</blockquote>
+
+<p>Inserting a TIME, DATE, or TIMESTAMP value with a fractional seconds part into a column of the same type but having fewer fractional digits results in rounding, as shown in this example:<br />
+<img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-0890-300x113.png" alt="inserting while fewer fractional digits" /></p>
+
+<p>No warning or error is given when such rounding occurs. This behavior follows the SQL standard, and is not affected by the server’s sql_mode setting.</p>
+
+<p><strong>插入到相同或者精度更短的字段中时，会进行“四舍五入”，并且不会有任何提示。</strong></p>
+
+<p>此外，JDBC同样也向数据库中提交了毫秒的精度：</p>
+
+<ul>
+  <li>5.1.6版本：直接舍弃毫秒部分</li>
+  <li>5.1.30版本：保留毫秒部分并发送到server</li>
+</ul>
+
+<h1 id="解决思路">解决思路</h1>
+
+<ol>
+  <li>通过在程序中截断毫秒的部分：实现com.ibatis.sqlmap.client.extensions.TypeHandlerCallback接口，对ibatis针对java.util.Date类型的赋值前进行拦截，强制丢弃毫秒部分。</li>
+  <li>若需要存储毫秒精度，则在表定义时进行配置。</li>
+</ol>

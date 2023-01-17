@@ -1,0 +1,48 @@
+---
+id: 879
+title: 'MySQL手记3 &#8212; 关注MySQL版本'
+date: '2020-04-12T21:11:02+08:00'
+author: Shuo
+excerpt: 为什么要不断关注版本？版本的特性为何？
+layout: post
+guid: 'http://codercoder.cn/?p=879'
+image: http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0660-300x120.png
+permalink: /index.php/2020/04/mysql-note-3-about-mysql-version/
+views:
+    - '4507'
+categories:
+    - Tech
+tags:
+    - MySQL手记
+    - Tech
+---
+
+# 一、为什么要不断关注版本
+
+ ​从刚开始工作开始，接触得最多的数据库版本为：MySQL5.6、MySQL5.7，甚至有的项目由于时限太长，使用的还是5.1或是5.5，也有排查问题时候遇到的5.1版本（老版本通常是直接通过yum安装的）。  
+ ​对于DBA来说，有的时候在DBA群中讨论较多的话题：MySQL又出新版本了，当然还有官方的worklog里面的工作纪要。对于MySQL来说，由于本身的架构局限，较难满足所有的业务场景。而新的版本，很多时候，带来了很多特性，逐步地满足用户的需要。当然，也会修复部分已知bug，让MySQL更加稳定。  
+ ​目前（2020年4月），MySQL最新的版本是MySQL8.0，而现在，对于很多公司，生产上用得最多的，应该还是5.7和5.6版本，新的8.0版本，往往是让有强大开发能力的大厂，或是在测试环境进行。目前很多的云厂商RDS，也提供了8.0的版本。
+
+# 二、版本的差异
+
+ 我们关注版本，主要就是关注其中的差异，还有对实际生产环境有极大促进作用的特性。考虑是否进行升级，升级又要注意什么？升级流程怎么样等等方面的内容，也将在后续篇章中进行介绍。在生产环境中，对于数据库的版本选择显得尤为重要，因为线上环境往往不能关机或者重启，而数据库的升级，则需要断开所有的连接，这势必会导致很多问题。而怎么选择数据库的版本呢？
+
+## 首先，DBA需要了解业务的变动情况
+
+ 业务变动对于数据库的影响。例如业务上经常添加列，那么是否可以考虑使用最新的MySQL8.0版本，可以快速增加列[](https://dev.mysql.com/doc/refman/8.0/en/innodb-online-ddl-operations.html)（在8.0版本之前，添加列需要消耗磁盘的IO去进行表数据的复制）；  
+![](http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0660-300x120.png)
+
+ ​又或者是业务上需要优化很多的表结构，会有大量的添加索引的操作，那么最少使用5.6的版本，因为5.6以后，MySQL支持了OnlineDDL。[MySQL Online DDL](https://dev.mysql.com/doc/refman/5.6/en/innodb-online-ddl-operations.html)  
+![](http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0685-300x127.png)
+
+## 再次，对于升级的操作难度的评估​
+
+ 对于有的业务，在做变动上，具有很大的难度（例如多应用方，或者是项目排期的问题）。这样的情况，DBA往往会采用一些额外的工具，去规避可能出现的问题：例如添加字段、索引、变更字段等等情况，DBA可采用例如pt-online-schema-change、gh-osc（后续会详细介绍）的工具进行，灵活控制数据库的负载，降低出现IO抖动的情况。
+
+```
+  当然，MySQL的版本更新还在继续，而作为“一线”工作人员，需要不断刷新自己的知识库，任重道远。关于各个版本的对比，可以在官方文档中查看“What is new”的章节(https://dev.mysql.com/doc/refman/8.0/en/mysql-nutshell.html)，会有详细的介绍，感兴趣的特性别忘了进行测试哟！
+
+```
+
+欢迎关注公众号：**朔的话**：  
+![](http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg)

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/assets/images/logo.png">
+
+<title>MySQL手记4 &#8212; Sysbench进行QPS性能测试 | codercoder</title>
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>MySQL手记4 — Sysbench进行QPS性能测试 | codercoder</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="MySQL手记4 — Sysbench进行QPS性能测试" />
+<meta name="author" content="Shuo" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="加上上篇的MySQL手记2 – sysbench测试磁盘IO，已经可以使用sysbench测试得到IOPS和QPS/TPS的结果了，这对于业务上线，提供了参考​。压测这一步，也不能马虎​。" />
+<meta property="og:description" content="加上上篇的MySQL手记2 – sysbench测试磁盘IO，已经可以使用sysbench测试得到IOPS和QPS/TPS的结果了，这对于业务上线，提供了参考​。压测这一步，也不能马虎​。" />
+<link rel="canonical" href="http://localhost:4000/index.php/2020/04/mysql-note-4-sysbench-qps-test/" />
+<meta property="og:url" content="http://localhost:4000/index.php/2020/04/mysql-note-4-sysbench-qps-test/" />
+<meta property="og:site_name" content="codercoder" />
+<meta property="og:image" content="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0847.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-04-08T21:47:56+08:00" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/index.php/2020/04/mysql-note-4-sysbench-qps-test/","headline":"MySQL手记4 — Sysbench进行QPS性能测试","dateModified":"2020-04-08T21:47:56+08:00","datePublished":"2020-04-08T21:47:56+08:00","image":"http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0847.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/index.php/2020/04/mysql-note-4-sysbench-qps-test/"},"author":{"@type":"Person","name":"Shuo"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/assets/images/logo.png"},"name":"Shuo"},"description":"加上上篇的MySQL手记2 – sysbench测试磁盘IO，已经可以使用sysbench测试得到IOPS和QPS/TPS的结果了，这对于业务上线，提供了参考​。压测这一步，也不能马虎​。","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/assets/css/screen.css" rel="stylesheet">
+
+<link href="/assets/css/main.css" rel="stylesheet">
+
+<script src="/assets/js/jquery.min.js"></script>
+
+</head>
+
+
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/">
+    <img src="/assets/images/logo.png" alt="codercoder">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+                </li>
+                
+                
+                
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Tech">Tech (53)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                    </li>
+                    
+                
+                
+            
+
+                <script src="/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">codercoder</h1>
+    <p class="lead">
+        DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    <p>
+        Share
+    </p>
+    <ul>
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://twitter.com/intent/tweet?text=MySQL手记4 &#8212; Sysbench进行QPS性能测试&url=http://localhost:4000/index.php/2020/04/mysql-note-4-sysbench-qps-test/" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://facebook.com/sharer.php?u=http://localhost:4000/index.php/2020/04/mysql-note-4-sysbench-qps-test/" onclick="window.open(this.href, 'facebook-share', 'width=550,height=435');return false;">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+        </li>
+
+        <li class="ml-1 mr-1">
+            <a target="_blank" href="https://www.linkedin.com/shareArticle?mini=true&url=http://localhost:4000/index.php/2020/04/mysql-note-4-sysbench-qps-test/" onclick="window.open(this.href, 'width=550,height=435');return false;">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+        </li>
+
+    </ul>
+    
+    <div class="sep">
+    </div>
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/assets/images/avatar.png" alt="Shuo">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left">
+                        <a target="_blank" class="link-dark" href="http://codercoder.cn">Shuo</a><a target="_blank" href="" class="btn follow">Follow</a>
+                        <span class="author-description">I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together.</span>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySQL手记4 &#8212; Sysbench进行QPS性能测试</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0847.png" alt="MySQL手记4 &#8212; Sysbench进行QPS性能测试">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <h1 id="一简介">一、简介</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>Sysbench是业内较为常用的测试工具，常用以测试数据库QPS（Queries Per Second），还有系统IO等等。https://launchpad.net/sysbench/
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>在《高性能MySQL》书中也有提到使用Sysbench来进行数据库的压测。<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-0847.png" alt="" /></p>
+
+<h1 id="二基准测试">二、基准测试</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>在做压测之前，需要评估好数据库环境的情况，例如：需要多少数据进行测试，测试选用什么测试算法等等。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="21-数据量评估">2.1 数据量评估</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>根据业务评估最大需要存放多少的数据量，并且做一定的冗余。例如：实际生产需存放50G的数据，最大有200个并发，那么，我们在测试的时候就可以选择30GB～100GB的范围区间进行“阶梯形”压测。
+为了防止出现内存很大会放下所有数据的情况，所以在压测时候，可使压测的数据量大于数据库（innodb_buffer_pool_size）的大小，这样能测试出更为确切的磁盘IO。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="22-io测试模式">2.2 IO测试模式</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>本系列主要是以数据库为中心进行介绍，所以本篇也是站在数据库的角度选择测试的模式。
+
+对于MySQL数据库，由于数据的存储在逻辑上是按照主键（聚集索引）顺序进行排列，但物理上，由于行信息，头信息（page-head），碎片等因素，真实在物理上则不是顺序的。所以在测试IO的时候，我们选择的test-mode为——“rndrw”（Random Read Write），这也就是为什么我们通常把数据放在SSD上，是因为SSD具有更高的随机读写性能。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>（PS:对于顺序读写，机械硬盘的性能和SSD相差不会很大，这点也是可以使用sysbench进行测试得到）</p>
+
+<h3 id="221-io测试">2.2.1 IO测试</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>由于数据库的性能瓶颈往往在于磁盘的IO，所以测试IO成为了第一个步骤。可参照：MySQL手记2 -- sysbench测试磁盘IO
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="222-io测试结果解读">2.2.2 IO测试结果解读</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>执行sysbench进行测试后，我们主要关注几个方面：IOPS、吞吐量、延迟情况。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>（1）IOPS：</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>在我们实际环境中，IOPS间接影响了应用的并发，IOPS越高，应用就能够在相同时间内执行更多的查询。而若IOPS较低，那么除了并发的QPS得不到提升之外，SQL可能会因此阻塞，导致大量的慢查，消耗数据库资源。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>（2）吞吐量：</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>部分业务可能会较大的字符串，所以磁盘的吞吐量同样是一个重要的指标，吞吐量越大，能够瞬时IO（INPUT, OUTPUT）的数据也就越多。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>（3）延迟情况：</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>很多对于延迟很敏感的应用，需要及时返回查询结果，读写都很频繁的场景，就会需要我们的磁盘延迟非常低。通常情况下，随着负载的升高，延迟可能会有一定的波动。在测试时，建议：
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>a. 测试的时间需要至少测试1个小时<br />
+b. 测试的数据量最好是在预估数据量附近的一个范围段，例如需要上线的最大数据量是100GB，则测试80～120GB区间（例如：80GB/90GB/100GB…）<br />
+c. 相同条件测试3次，取平均值，防止出现偶然情况</p>
+
+<h2 id="23-qps测试">2.3 QPS测试</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>QPS(Queries Per Second)为衡量数据库性能的重要指标。数据库实例QPS越高，那么在生产环境中，就能满足更多的业务负载。对于QPS的测试，尤为重要。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>例如选择如下的条件：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-host=172.16.3.3 --mysql-port=3306  --mysql-user=root --mysql-password=abcabc  --mysql-db=sbtestdb --tables=3 --table-size=50000000 --threads=30  --max-time=90 --report-interval=10  run &amp;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>（1）sysbench –help</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+</pre></td><td class="rouge-code"><pre>sysbench --help
+​
+Usage:
+​
+  sysbench [options]... [testname] [command]
+​
+Commands implemented by most tests: prepare run cleanup help
+​
+General options:
+  --threads=N                     number of threads to use [1]
+  --events=N                      limit for total number of events [0]
+  --time=N                        limit for total execution time in seconds [10]
+  --forced-shutdown=STRING        number of seconds to wait after the --time limit before forcing shutdown, or 'off' to disable [off]
+  --thread-stack-size=SIZE        size of stack per thread [64K]
+  --rate=N                        average transactions rate. 0 for unlimited rate [0]
+  --report-interval=N             periodically report intermediate statistics with a specified interval in seconds. 0 disables intermediate reports [0]
+  --report-checkpoints=[LIST,...] dump full statistics and reset all counters at specified points in time. The argument is a list of comma-separated values representing the amount of time in seconds elapsed from start of test when report checkpoint(s) must be performed. Report checkpoints are off by default. []
+  --debug[=on|off]                print more debugging info [off]
+  --validate[=on|off]             perform validation checks where possible [off]
+  --help[=on|off]                 print help and exit [off]
+  --version[=on|off]              print version and exit [off]
+  --config-file=FILENAME          File containing command line options
+  --tx-rate=N                     deprecated alias for --rate [0]
+  --max-requests=N                deprecated alias for --events [0]
+  --max-time=N                    deprecated alias for --time [0]
+  --num-threads=N                 deprecated alias for --threads [1]
+​
+Pseudo-Random Numbers Generator options:
+  --rand-type=STRING random numbers distribution {uniform,gaussian,special,pareto} [special]
+  --rand-spec-iter=N number of iterations used for numbers generation [12]
+  --rand-spec-pct=N  percentage of values to be treated as 'special' (for special distribution) [1]
+  --rand-spec-res=N  percentage of 'special' values to use (for special distribution) [75]
+  --rand-seed=N      seed for random number generator. When 0, the current time is used as a RNG seed. [0]
+  --rand-pareto-h=N  parameter h for pareto distribution [0.2]
+​
+....
+See 'sysbench &lt;testname&gt; help' for a list of options for each test.
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>（2）lua脚本：</strong></p>
+
+<p>bulk_insert.lua oltp_insert.lua oltp_read_write.lua oltp_write_only.lua tests<br />
+​<br />
+oltp_common.lua oltp_point_select.lua oltp_update_index.lua select_random_points.lua<br />
+​<br />
+oltp_delete.lua oltp_read_only.lua oltp_update_non_index.lua select_random_ranges.lua</p>
+
+<p>lua脚本的选择：<br />
+ sysbench提供了多种不同的类型，其中较为常用的为：oltp_read_write.lua（即oltp场景的read&amp;write），当然，可以根据实际的需要，选择只读（oltp_read_only.lua ）、只写（oltp_write_only.lua ）、批量插入（bulk_insert.lua）等等。</p>
+
+<p><strong>（3）其它选项</strong><br />
+ –threads：并发执行的线程数 通常使用线上可能出现的并发数进行测试<br />
+ –max-time：运行测试的最长时间，至少测试15分钟<br />
+ –tables：表的数目，可根据应用情况而定，主要根据大表的数目进行判断<br />
+ –table-size：表的大小，若为多个表，则每个表的大小均为table-size</p>
+
+<h2 id="24-测试过程">2.4 测试过程</h2>
+
+<p><strong>（1）数据准备</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="rouge-code"><pre># sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-host=172.16.3.3 --mysql-port=3306  --mysql-user=root --mysql-password=abcabc  --mysql-db=sbtestdb --tables=3 --table-size=50000 --threads=30  --max-time=90 --report-interval=10  prepare
+​
+sysbench 1.0.17 (using system LuaJIT 2.0.4)
+Initializing worker threads...
+​
+Creating table 'sbtest2'...
+Creating table 'sbtest3'...
+Creating table 'sbtest1'...
+Inserting 50000 records into 'sbtest1'
+Inserting 50000 records into 'sbtest2'
+Inserting 50000 records into 'sbtest3'
+Creating a secondary index on 'sbtest1'...
+Creating a secondary index on 'sbtest3'...
+Creating a secondary index on 'sbtest2'...
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>​生成3个表，每个表5​0000行数据。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>（2）oltp测试：</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+</pre></td><td class="rouge-code"><pre># sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-host=172.16.3.3 --mysql-port=3306  --mysql-user=root --mysql-password=abcabc  --mysql-db=sbtestdb --tables=3 --table-size=50000 --threads=30  --max-time=90 --report-interval=10  run
+​
+sysbench 1.0.17 (using system LuaJIT 2.0.4)
+Running the test with following options:
+Number of threads: 30
+​
+Report intermediate results every 10 second(s)
+Initializing random number generator from current time
+Initializing worker threads...
+​
+Threads started!
+​
+[ 10s ] thds: 30 tps: 168.27 qps: 3402.24 (r/w/o: 2388.13/674.57/339.53) lat (ms,95%): 634.66 err/s: 0.00 reconn/s: 0.00
+[ 20s ] thds: 30 tps: 196.39 qps: 3923.33 (r/w/o: 2744.41/786.15/392.77) lat (ms,95%): 196.89 err/s: 0.00 reconn/s: 0.00
+[ 30s ] thds: 30 tps: 228.62 qps: 4578.77 (r/w/o: 3207.96/913.57/457.24) lat (ms,95%): 207.82 err/s: 0.00 reconn/s: 0.00
+[ 40s ] thds: 30 tps: 254.63 qps: 5090.31 (r/w/o: 3561.16/1019.90/509.25) lat (ms,95%): 183.21 err/s: 0.00 reconn/s: 0.00
+[ 50s ] thds: 30 tps: 217.37 qps: 4348.62 (r/w/o: 3045.12/868.86/434.63) lat (ms,95%): 189.93 err/s: 0.00 reconn/s: 0.00
+[ 60s ] thds: 30 tps: 246.20 qps: 4922.70 (r/w/o: 3445.80/984.40/492.50) lat (ms,95%): 186.54 err/s: 0.00 reconn/s: 0.00
+[ 70s ] thds: 30 tps: 210.20 qps: 4207.09 (r/w/o: 2943.39/843.30/420.40) lat (ms,95%): 193.38 err/s: 0.00 reconn/s: 0.00
+[ 80s ] thds: 30 tps: 216.30 qps: 4324.93 (r/w/o: 3030.35/861.99/432.59) lat (ms,95%): 196.89 err/s: 0.00 reconn/s: 0.00
+[ 90s ] thds: 30 tps: 198.00 qps: 3963.07 (r/w/o: 2774.65/792.51/395.91) lat (ms,95%): 200.47 err/s: 0.00 reconn/s: 0.00
+​
+SQL statistics:
+    queries performed:
+        read:                            271460
+        write:                           77560
+        other:                           38780
+        total:                           387800
+    transactions:                        19390  (215.21 per sec.)
+    queries:                             387800 (4304.16 per sec.)
+    ignored errors:                      0      (0.00 per sec.)
+    reconnects:                          0      (0.00 per sec.)
+​
+General statistics:
+    total time:                          90.0974s
+    total number of events:              19390
+Latency (ms):
+         min:                                    8.11
+         avg:                                  139.32
+         max:                                 1757.42
+         95th percentile:                      196.89
+         sum:                              2701326.42
+​
+Threads fairness:
+    events (avg/stddev):           646.3333/6.16
+    execution time (avg/stddev):   90.0442/0.02
+​
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>命令指定为每10秒打印一次状态，一共执行90秒（由于此次为展示，所以执行的表数据、时间等都不符合规范）。<br />
+可以看到平均的结果汇总为：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>**TPS：215.21             ## transactions:   19390  (215.21 per sec.)
+QPS：4304.16                ##queries:     387800 (4304.16 per sec.) 
+95%的延时为：196.89ms    ##95th percentile:                      196.89**
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>​通常，结合业务的情况，判读是否能够满足业务需求，例如：
+​    ​业务需要单实例的QPS在6000左右，那么这个测试的结果就不能够满足需求
+​    ​有的业务对于数据库响应的延时要求很高，若需要的延时不能超过50毫秒，那么该实例同样也不能满足需求
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>此外，还有许多有趣的测试案例，之前看到的一个有趣的测试案例，测试MySQL的创建连接的性能：https://github.com/jeremycole/yesmark</p>
+
+<p><strong>（3）清理</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>​测试结束后，记得及时清理数据，防止占用磁盘空间，造成不必要的磁盘浪费：
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-host=172.16.3.3 --mysql-port=3306  --mysql-user=root --mysql-password=abcabc  --mysql-db=sbtestdb --tables=3 --table-size=50000 --threads=30  --max-time=90 --report-interval=10  cleanup
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="24-其它注意事项">2.4 其它注意事项</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>​每测试一次，停顿900秒：（1）用于预热数据，避免预热时的I/O影响测试结果；（2）CPU也需要进行“冷处理”，同样《高性能MySQL》一书中推荐两次测试中间间隔15分钟
+
+​sysbench所在的实例也需要预留足够的资源：因为sysbench运行的时候，会消耗CPU和内存，所以为了得到更准确的结果，sysbench所在的机器也需要预留足够的配置
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>​</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>​至此，加上上篇的[MySQL手记2 -- sysbench测试磁盘IO](http://codercoder.cn/index.php/2020/04/mysql-note-2-sysbench-iotest/ "MySQL手记2 -- sysbench测试磁盘IO")，已经可以使用sysbench测试得到IOPS和QPS/TPS的结果了，这对于业务上线，提供了参考​。压测这一步，也不能马虎​。
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>欢迎关注公众号：<strong>朔的话</strong>：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg" alt="" /></p>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Date -->
+            <p>
+            <small>
+                <span class="post-date"><time class="post-date" datetime="2020-04-08">08 Apr 2020</time></span>           
+                
+                </small>
+            </p>
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/categories#Tech">Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#MySQL手记">#MySQL手记</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/tags#Tech">#Tech</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="//index.php/2020/04/mysql-note-2-sysbench-iotest/"> &laquo; MySQL手记2 &#8212; sysbench测试磁盘IO</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="//index.php/2020/04/mysql-5-preparing-for-db-upgrade/">MySQL手记5 &#8212; 数据库升级准备 &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'demowebsite'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light">Explore <span class="d-none d-md-inline">→</span></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/categories#Tech">Tech (53)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#Fell-in-pit">Fell-in-pit (21)</a>
+                
+                    <a class="mt-1 mb-1" href="/categories#LOL-7788">LOL-7788 (2)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2023 codercoder 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right">    
+                <a href="http://www.beian.miit.gov.cn/">浙ICP备19037887号
+                </a>
+                <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010302003390"  style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/assets/images/beian.png" style="float:left;"/>
+                </a>
+                <a style="height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">浙公网安备 33010302003390号</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/assets/js/mediumish.js"></script>
+
+
+
+<script src="/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//demowebsite.disqus.com/count.js"></script>
+
+
+</body>
+</html>

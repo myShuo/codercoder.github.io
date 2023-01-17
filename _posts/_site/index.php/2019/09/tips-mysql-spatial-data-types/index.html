@@ -1,0 +1,66 @@
+<h1 id="空间位置数据类型">空间位置数据类型</h1>
+
+<dl><dt>MySQL支持的空间数据类型<sup id="fnref-641-1">[1](#fn-641-1)</sup>：</dt><dd>**GEOMETRY**</dd><dd>**POINT**</dd><dd>**LINESTRING**</dd><dd>**POLYGON**</dd></dl>
+<p>最常用的为<strong>GEOMETRY，POLYGON，POINT</strong>。因为目前很多应用都是判断是否某个点在所画范围内，或者是两个多边形范围的交叉情况。</p>
+
+<p><a href="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1822.png"><img src="http://codercoder.cn/wp-content/uploads/2019/09/2019-09-1822.png" alt="" /></a></p>
+
+<h2 id="geometry">GEOMETRY</h2>
+
+<p>GEOMETRY是一种强大的空间数据类型，可以用来表示<strong>POINT, LINESTRING, and POLYGON</strong>，即另外的三种空间数据类型均可以使用GEOMETRY来表示（线上也推荐使用此种模式，避免出现<strong>兼容性问题</strong> ）</p>
+
+<p>.<br />
+.</p>
+
+<h1 id="常见问题">常见问题</h1>
+
+<h2 id="空间索引">空间索引</h2>
+
+<p>所有的空间字段<strong>不能为NULL</strong>，不然在创建空间索引的时候会报错：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mysql&amp;gt; create table spatest(id int auto_increment primary key, userspace geometry default null,  SPATIAL KEY `idx_userspace` (`userspace`));
+ERROR 1252 (42000): All parts of a SPATIAL index must be NOT NULL
+
+</code></pre></div></div>
+
+<h2 id="关于使用polygon数据类型">关于使用polygon数据类型</h2>
+
+<p>polygon中的打点，必须为首尾相连，形成闭合图形（<strong>在应用中容易打点时忽略最后一个点</strong>）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mysql&amp;gt; select st_astext(ST_geomfromtext('POLYGON(( 119.41667 24.078513,115.416761 26.078578,115.41725 24.078327,113.4177 24.078027,115.418154 25.077749, 119.41667 26.078513))')); 
+ERROR 3037 (22023): Invalid GIS data provided to function st_geomfromtext.
+
+
+mysql&amp;gt; select st_astext(ST_geomfromtext('POLYGON(( 119.41667 24.078513,115.416761 26.078578,115.41725 24.078327,113.4177 24.078027,115.418154 25.077749, 119.41667 24.078513))')); 
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| st_astext(ST_geomfromtext('POLYGON(( 119.41667 24.078513,115.416761 26.078578,115.41725 24.078327,113.4177 24.078027,115.418154 25.077749, 119.41667 24.078513))')) |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| POLYGON((119.41667 24.078513,115.416761 26.078578,115.41725 24.078327,113.4177 24.078027,115.418154 25.077749,119.41667 24.078513))                                 |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+
+
+</code></pre></div></div>
+
+<p><strong>注意</strong></p>
+
+<blockquote>
+  <p>MySQL8.0将astext函数转换为st_astext。</p>
+</blockquote>
+
+<h1 id="空间相关函数">空间相关函数</h1>
+
+<p>常用的空间相关函数<sup id="fnref-641-2"><a href="#fn-641-2">2</a></sup>：<br />
+<strong>ST_Intersects(g1, g2):</strong><br />
+Returns 1 or 0 to indicate whether g1 spatially intersects g2.</p>
+
+<p><strong>ST_Contains(g1, g2):</strong><br />
+Returns 1 or 0 to indicate whether g1 completely contains g2. This tests the opposite relationship as ST_Within().</p>
+
+<div class="footnotes" role="doc-endnotes">- - - - - -
+
+1. [MySQL空间数据类型](https://dev.mysql.com/doc/refman/5.6/en/spatial-type-overview.html) [↩︎](#fnref-641-1)
+2. [MySQL支持的空间函数](https://dev.mysql.com/doc/refman/5.6/en/spatial-relation-functions-object-shapes.html#function_st-intersects) [↩︎](#fnref-641-2)
+
+</div>

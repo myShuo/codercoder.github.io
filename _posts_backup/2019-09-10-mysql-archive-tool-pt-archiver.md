@@ -1,0 +1,93 @@
+---
+id: 554
+title: 'MySQL手记11 &#8212; MySQL归档工具：pt-archiver'
+date: '2019-09-10T17:45:43+08:00'
+author: Shuo
+excerpt: '线上环境在运行一段时间后，往往有需要进行归档的“冷数据”，或者是不再需要的一些数据，会导致表变得“臃肿”，以至于对表的操作很缓慢。 pt-archiver可以灵活的归档数据，并对归档的过程进行控制。'
+layout: post
+guid: 'http://codercoder.cn/?p=554'
+permalink: /index.php/2019/09/mysql-archive-tool-pt-archiver/
+views:
+    - '3307'
+    - '3307'
+    - '3307'
+    - '3307'
+    - '3307'
+    - '3307'
+categories:
+    - Tech
+tags:
+    - MySQL手记
+    - 工具
+    - Tech
+---
+
+# 一、使用场景
+
+ 生产环境在运行一段时间后，往往有需要进行归档的“冷数据”，或者是不再需要的一些数据，会导致表变得“臃肿”，以至于对表的操作很缓慢。这时候，若直接使用delete进行删除，则会对数据库系统造成较大的影响。当然，我们也可以自己写工具通过索引逐步批量进行归档，对此，Percona的pt工具包（http://codercoder.cn/index.php/2020/04/mysql-note-7-mysql-utilities-introduction/） 提供了一个非常好用的工具：pt-archiver。
+
+ pt-archiver可以灵活的对归档的过程进行控制，常用的方面有：  
+ 灵活指定where条件（使用有索引的字段进行）  
+ 是否需要归档到新表（或者是直接删除）  
+ 每批删除的数据数量  
+ 每批次中间的间隔时间（负载较高时，可以延长间隔时间）
+
+ 同样，通过–help可以查看到详情：  
+ **pt-archiver –help**  
+[![](http://codercoder.cn/wp-content/uploads/2019/09/2020-04-2377.png)](http://codercoder.cn/wp-content/uploads/2019/09/2020-04-2377.png)
+
+# 二、注意事项
+
+```
+pt-archiver --source h=HOST,P=3306,D=dbname,t=tbname,u=root,p=root  --no-check-charset --where "gmt_create <= date_sub(curdate(), interval 30 day)" --purge --no-check-charset --limit=1000  --sleep=1 --txn-size=100  --nosafe-auto-increment --noversion-check --why-quit --progress=100000  --sentinel=/tmp/pt-ttest  2>&1 >> archive.log
+
+```
+
+## 2.1 生产环境中的配置
+
+（1）误删数据  
+ –purge：是否删除原表的数据  
+ –where；删除的条件
+
+（2）字符集  
+ 若需要将数据归档到新表，则必须指定字符集，防止出现字符集不一致数据乱码的问题（比较恐怖的是：数据已经删除，但是目标表乱码的情况）
+
+（3）归档的速度  
+ –limit：每条SQL删除的行数  
+ –sleep：间隔的秒数  
+ –sleep-coef：间隔的时间（停顿上次select的耗时\*sleep-coef）  
+ –txn-size：每个事务中包含的行数  
+ –bulk-delete：一条sql删除一批数据  
+ –commit-each：每批数据commit一次
+
+（4）停止  
+ –sentinel：存在指定的文件，就停止
+
+## 2.2 注意：
+
+**（1）日志**  
+ 可根据需要，调整–progress，即每隔多少行，打印一次日志  
+[![](http://codercoder.cn/wp-content/uploads/2019/09/2020-04-2321.png)](http://codercoder.cn/wp-content/uploads/2019/09/2020-04-2321.png)
+
+**（2）测试**  
+ 可以加上–dry-run选项，即不进行真实数据操作。配合 –statistics，获取到归档的大致情况
+
+**（3）where条件**  
+ where条件最好使用索引的字段，否则可能出现归档进程消耗大量CPU，导致慢查的情况。
+
+**（4）更改默认索引**  
+ 默认pt-archiver使用PRIMARY KEY去分段查询符合条件的数据（可以从审计日志看出），**可以在–source的DSN中指定”i=idx\_create\_time”指定性能更好的索引**。
+
+例如上例审计为：
+
+```
+SELECT /*!40001 SQL_NO_CACHE */ `id`,`name` FROM dbname.tbname FORCE INDEX(`PRIMARY`) WHERE (gmt_create = '26160734')) ORDER BY `id` LIMIT 1000
+
+```
+
+ 再将获得到的主键id，按照配置，进行删除，例如根据–bulk-delete/–commit-each/–txn-size选项判断。
+
+ 对于生产环境的数据来说，DBA和业务部门需要配合起来，把数据进行“冷热隔离”，使整个系统运行起来更加流畅，归档往往按照时间，把历史数据归档到目标的库表中，并每日增量执行，以保证线上数据为“热数据”。
+
+欢迎关注公众号：**朔的话**：  
+![](http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg)

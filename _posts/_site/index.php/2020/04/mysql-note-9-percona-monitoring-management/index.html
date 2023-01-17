@@ -1,0 +1,149 @@
+<h1 id="一主要技术方案">一、主要技术方案</h1>
+
+<h2 id="11-pmm">1.1 PMM</h2>
+
+<p>Percona Monitoring Management，下称PMM，Percona的监控管理系统，详情：<br />
+https://www.percona.com/doc/percona-monitoring-and-management/index.html<br />
+PMM分为两个部分：Client和Server<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2092.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2092.png" alt="" /></a></p>
+
+<h3 id="1clinet端">（1）Clinet端：</h3>
+
+<p>由各种exporter（mysql_exporter、mongodb_exporter、node_exporter、redis_exporter…）外加queries工具、pmm-admin工具组成。<br />
+ <strong>pmm-admin</strong>为管理工具，例如用以添加、删除所监控数据库实例<br />
+ <strong>pmm-mysql-queries-0</strong><br />
+ <strong>pmm-mongodb-queries-0</strong></p>
+
+<p>这两者用以收集MySQL和MongoDB的query performance发送到QAN API<br />
+(https://www.percona.com/doc/percona-monitoring-and-management/conf-mysql.html<br />
+)<br />
+<em>（其中query的监控需要数据库按照文档进行配置，否则不能进行query监控）</em><br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2092-1.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2092-1.png" alt="" /></a></p>
+
+<h3 id="2server端">（2）Server端：</h3>
+
+<p><strong>Query Analytics：</strong><br />
+ <strong>QAN API：</strong>接收QAN agent传来的数据<br />
+ <strong>QAN Web App：</strong>用来展示Query Analytics data的wen应用<br />
+<strong>Metrics Monitor：</strong>展示监控数据metrics：<br />
+ <strong>Percona Dashboard：</strong>Percona一系列Grafana的dashboards<br />
+ <strong>Consul：</strong>为提供Prometheus hosts的操作（添加、删除）等<br />
+ <strong>Prometheus：</strong>连接exporters并聚合其传入的metrics数据<br />
+ <strong>Grafana：</strong>用以展示Prometheus的数据<br />
+<strong>Orchestrator：</strong>MySQL复制拓扑结构的可视化工具（后续将单独介绍此工具）</p>
+
+<p>虽然新版本的PMM默认为打开，最好在启动时候指定打开Orchestrator：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker ... -e ORCHESTRATOR_ENABLED=true -e ORCHESTRATOR_USER=root -e ORCHESTRATOR_PASSWORD=root ...
+
+</code></pre></div></div>
+
+<p>Orchestrator地址：http://127.0.0.1/orchestrator</p>
+
+<p>通过如下页面进行添加：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2042.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2042.png" alt="" /></a></p>
+
+<p>添加后，可以看到添加的实例的拓扑关系：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2071-2.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2071-2.png" alt="" /></a></p>
+
+<p>此外，还可以修改MySQL复制的相关配置：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2070.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2070.png" alt="" /></a></p>
+
+<h2 id="12-监控实例">1.2 监控实例</h2>
+
+<p>监控实例的添加和删除使用pmm-admin工具进行管理。pmm-admin需要使用root用户运行：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2095.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2095.png" alt="" /></a><br />
+pmm-admin –help可以看到使用详情。</p>
+
+<h2 id="13-pmm的安装">1.3 PMM的安装</h2>
+
+<p>可使用docker进行安装：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> docker run -d -e METRICS_RETENTION=1440h --name pmm-server-1-2020-2 percona/pmm-server:1
+
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>可以看到，使用dock er安装时，可以定制化一些需要的配置，例如：
+
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-e METRICS_RETENTION=1440h：metrics保留1440小时
+
+</code></pre></div></div>
+
+<p>还有其它的配置可供挑选：https://www.percona.com/doc/percona-monitoring-and-management/glossary.option.html</p>
+
+<h1 id="二添加删除实例">二、添加/删除实例</h1>
+
+<h2 id="21-添加mysql实例">2.1 添加MySQL实例</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pmm-admin add mysql --user testuser --password passwd --host 192.168.0.1 --port 3306 testdb-master
+
+</code></pre></div></div>
+
+<p>添加完成后，使用pmm-admin工具显示监控的实例列表信息：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2070-1.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2070-1.png" alt="" /></a></p>
+
+<h2 id="22-添加mongodb实例">2.2 添加Mongodb实例</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  pmm-admin add mongodb --uri mongodb://admin:password@172.27.2.1:27017/admin mongodb-001[linux:metrics] OK, already monitoring this system.[mongodb:metrics] OK, now monitoring MongoDB metrics using URI admin:***@172.27.2.1:27017/admin[mongodb:queries] OK, now monitoring MongoDB queries using URI admin:***@172.27.2.1:27017/admin[mongodb:queries] It is required for correct operation that profiling of monitored MongoDB databases be enabled.[mongodb:queries] Note that profiling is not enabled by default because it may reduce the performance of your MongoDB server.[mongodb:queries] For more information read PMM documentation (https://www.percona.com/doc/percona-monitoring-and-management/conf-mongodb.html).
+
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>​同理查看pmm-admin list：
+
+</code></pre></div></div>
+
+<p><a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2089.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2089.png" alt="" /></a></p>
+
+<h2 id="23-添加redis实例">2.3 添加Redis实例</h2>
+
+<h3 id="1redis_exporter">（1）redis_exporter</h3>
+
+<p>由于PMM本身是不自带Redis监控的，但是其中的Prometheus可以收集到redis的数据，所以可以使用pmm-admin中的external:service来添加Redis实例（例如：https://github.com/oliver006/redis_exporter）:<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2043.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2043.png" alt="" /></a></p>
+
+<p><strong>使用redis_exporter收集metrics</strong>，并暴露端口给Prometheus：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> ./redis_exporter  -redis.addr 172.27.0.1:7000 --redis.password redisPasswd  -web.listen-address :9121 
+
+</code></pre></div></div>
+
+<p>默认的端口为9121。</p>
+
+<h3 id="2pmm添加redis实例">（2）PMM添加Redis实例</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pmm-admin add external:service  S-Redis-master-001 --service-port=9121
+
+</code></pre></div></div>
+
+<p>其中–service-port=9121即为上步骤中redis_exporter暴露的端口号。</p>
+
+<h3 id="3查看redis实例添加情况">（3）查看redis实例添加情况</h3>
+
+<p><a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2071.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2071.png" alt="" /></a></p>
+
+<h1 id="三-删除监控实例">三、 删除监控实例</h1>
+
+<p>使用pmm-admin remove，即可方便地删除监控的节点：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> pmm-admin remove mysql:metrics tuya_testdb-ind-master
+
+ OK, removed MySQL metrics mysql-3306-master from monitoring.
+
+</code></pre></div></div>
+
+<h1 id="四页面上进行添加删除实例">四、页面上进行添加/删除实例</h1>
+
+<p>PMM的dashboards上提供了页面上的操作，详情如下：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2094.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2094.png" alt="" /></a></p>
+
+<p>点击对应的添加项，可以添加不同类型的实例：<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2071-1.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2071-1.png" alt="" /></a></p>
+
+<p>至此，PMM基本介绍完毕，实际环境中，需要对于很多细节进行修改优化，以便更加适用，并降低监控对于​数据库实例的影响。<br />
+ 对于监控数据来说，收集得越仔细，就更容易排查问题，但是也对数据库实例的负载造成影响，所以需要进行权衡，选择更为适宜的比例进行监控​。<br />
+<a href="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2088.png"><img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2088.png" alt="" /></a></p>
+
+<p>欢迎关注公众号：<strong>朔的话</strong>：<br />
+<img src="http://codercoder.cn/wp-content/uploads/2020/04/2020-04-2693.jpg" alt="" /></p>

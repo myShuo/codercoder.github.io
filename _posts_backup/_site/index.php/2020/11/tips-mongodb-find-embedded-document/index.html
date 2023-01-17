@@ -1,0 +1,33 @@
+<h1 id="背景">背景</h1>
+
+<p>最近在查询MongoDB中的数据时，发现查询不到数据，查询语句为：db.person.find({“name”:{<br />
+ last: “Matsumoto”,<br />
+ first: “Yukihiro”<br />
+}})<br />
+数据库中数据为：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "_id" : &lt;value&gt;,
+    "name" : { "first" : &lt;string&gt;, "last" : &lt;string&gt; },       // embedded document
+    "birth" : &lt;ISODate&gt;,
+    "death" : &lt;ISODate&gt;,
+    "contribs" : [ &lt;string&gt;, ... ],                           // Array of Strings
+    "awards" : [
+        { "award" : &lt;string&gt;, year: &lt;number&gt;, by: &lt;string&gt; }  // Array of embedded documents
+        ...
+    ]
+}
+
+</code></pre></div></div>
+
+<h1 id="问题定位">问题定位</h1>
+
+<p>交换“name”中的属性顺序，发现必须与数据库中的一致，才能查询到数据～</p>
+
+<h2 id="官方文档">官方文档</h2>
+
+<p><img src="http://codercoder.cn/wp-content/uploads/2020/11/2020-11-1315.png" alt="" /><br />
+<strong>The name field must match the embedded document exactly.</strong></p>
+
+<p>果然，在查询嵌套的文档时候，字段顺序需要与存储时候的保持一致，否则会查询不到数据。<br />
+https://docs.mongodb.com/manual/reference/method/db.collection.find/</p>

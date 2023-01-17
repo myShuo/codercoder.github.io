@@ -1,0 +1,148 @@
+<p>项目引用了新版本mybatis-spring-boot-starter之后启动不起来，报错Cannot determine embedded database driver class for database type NONE，在网上搜索是需要在排除掉spring自身的org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration这个类就可以，不让其自动配置。<br />
+ 由于项目是采用spring boot框架，所以在@SpringBootApplication中exclude这个类即可：<br />
+改之前代码：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@EnableAutoConfiguration</span>
+<span class="nd">@SpringBootApplication</span>
+<span class="nd">@EnableDubbo</span><span class="o">(</span><span class="n">multipleConfig</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Application</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">new</span> <span class="nf">SpringApplicationBuilder</span><span class="o">(</span><span class="n">Application</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">profiles</span><span class="o">(</span><span class="s">"default"</span><span class="o">).</span><span class="na">build</span><span class="o">(</span><span class="n">args</span><span class="o">).</span><span class="na">run</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+</code></pre></div></div>
+
+<p>添加DataSourceAutoConfiguration排除之后：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@EnableAutoConfiguration</span>
+<span class="nd">@SpringBootApplication</span><span class="o">(</span><span class="n">exclude</span> <span class="o">=</span> <span class="o">{</span><span class="n">DataSourceAutoConfiguration</span><span class="o">.</span><span class="na">class</span><span class="o">})</span>
+<span class="nd">@EnableDubbo</span><span class="o">(</span><span class="n">multipleConfig</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Application</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">new</span> <span class="nf">SpringApplicationBuilder</span><span class="o">(</span><span class="n">Application</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">profiles</span><span class="o">(</span><span class="s">"default"</span><span class="o">).</span><span class="na">build</span><span class="o">(</span><span class="n">args</span><span class="o">).</span><span class="na">run</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+</code></pre></div></div>
+
+<p>本以为这样就成功了，改之后发现重新启动项目还是报一样的错误，就比较奇怪，网上都是这样解决的，自己这里却不行。<br />
+ 现在只能猜测是不是我上面这样配置没生效，根本没有排除掉DataSourceAutoConfiguration呢，然后去debug了下spring这块源码，看spring是如何找到启动注解上要排除的类的。<br />
+ 最终找到了这个类AnnotatedElementUtils#searchWithGetSemanticsInAnnotations方法，该方法是查找该类上某个注解的定义配置的。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * This method is invoked by {@link #searchWithGetSemantics} to perform
+ * the actual search within the supplied list of annotations.
+ * &lt;p&gt;This method should be invoked first with locally declared annotations
+ * and then subsequently with inherited annotations, thereby allowing
+ * local annotations to take precedence over inherited annotations.
+ * &lt;p&gt;The {@code metaDepth} parameter is explained in the
+ * {@link Processor#process process()} method of the {@link Processor} API.
+ * @param element the element that is annotated with the supplied
+ * annotations, used for contextual logging; may be {@code null} if unknown
+ * @param annotations the annotations to search in
+ * @param annotationType the annotation type to find
+ * @param annotationName the fully qualified class name of the annotation
+ * type to find (as an alternative to {@code annotationType})
+ * @param containerType the type of the container that holds repeatable
+ * annotations, or {@code null} if the annotation is not repeatable
+ * @param processor the processor to delegate to
+ * @param visited the set of annotated elements that have already been visited
+ * @param metaDepth the meta-depth of the annotation
+ * @return the result of the processor (potentially {@code null})
+ * @since 4.2
+ */</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">T</span> <span class="nf">searchWithGetSemanticsInAnnotations</span><span class="o">(</span><span class="n">AnnotatedElement</span> <span class="n">element</span><span class="o">,</span>
+            <span class="n">List</span><span class="o">&lt;</span><span class="n">Annotation</span><span class="o">&gt;</span> <span class="n">annotations</span><span class="o">,</span> <span class="n">Class</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="n">Annotation</span><span class="o">&gt;</span> <span class="n">annotationType</span><span class="o">,</span>
+            <span class="n">String</span> <span class="n">annotationName</span><span class="o">,</span> <span class="n">Class</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="n">Annotation</span><span class="o">&gt;</span> <span class="n">containerType</span><span class="o">,</span>
+            <span class="n">Processor</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">processor</span><span class="o">,</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">AnnotatedElement</span><span class="o">&gt;</span> <span class="n">visited</span><span class="o">,</span> <span class="kt">int</span> <span class="n">metaDepth</span><span class="o">)</span> <span class="o">{</span>
+
+        <span class="c1">// Search in annotations</span>
+        <span class="c1">// 这个for循环是在类上直接定义的注解上进行查找指定的注解</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">Annotation</span> <span class="n">annotation</span> <span class="o">:</span> <span class="n">annotations</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Class</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="n">Annotation</span><span class="o">&gt;</span> <span class="n">currentAnnotationType</span> <span class="o">=</span> <span class="n">annotation</span><span class="o">.</span><span class="na">annotationType</span><span class="o">();</span>
+            <span class="k">if</span> <span class="o">(!</span><span class="n">AnnotationUtils</span><span class="o">.</span><span class="na">isInJavaLangAnnotationPackage</span><span class="o">(</span><span class="n">currentAnnotationType</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">currentAnnotationType</span> <span class="o">==</span> <span class="n">annotationType</span> <span class="o">||</span>
+                        <span class="n">currentAnnotationType</span><span class="o">.</span><span class="na">getName</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">annotationName</span><span class="o">)</span> <span class="o">||</span>
+                        <span class="n">processor</span><span class="o">.</span><span class="na">alwaysProcesses</span><span class="o">())</span> <span class="o">{</span>
+                    <span class="n">T</span> <span class="n">result</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="n">element</span><span class="o">,</span> <span class="n">annotation</span><span class="o">,</span> <span class="n">metaDepth</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">result</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="k">if</span> <span class="o">(</span><span class="n">processor</span><span class="o">.</span><span class="na">aggregates</span><span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="n">metaDepth</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                            <span class="n">processor</span><span class="o">.</span><span class="na">getAggregatedResults</span><span class="o">().</span><span class="na">add</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+                        <span class="o">}</span>
+                        <span class="k">else</span> <span class="o">{</span>
+                            <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+                        <span class="o">}</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+                <span class="c1">// Repeatable annotations in container?</span>
+                <span class="k">else</span> <span class="nf">if</span> <span class="o">(</span><span class="n">currentAnnotationType</span> <span class="o">==</span> <span class="n">containerType</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">for</span> <span class="o">(</span><span class="n">Annotation</span> <span class="n">contained</span> <span class="o">:</span> <span class="n">getRawAnnotationsFromContainer</span><span class="o">(</span><span class="n">element</span><span class="o">,</span> <span class="n">annotation</span><span class="o">))</span> <span class="o">{</span>
+                        <span class="n">T</span> <span class="n">result</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="n">element</span><span class="o">,</span> <span class="n">contained</span><span class="o">,</span> <span class="n">metaDepth</span><span class="o">);</span>
+                        <span class="k">if</span> <span class="o">(</span><span class="n">result</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                            <span class="c1">// No need to post-process since repeatable annotations within a</span>
+                            <span class="c1">// container cannot be composed annotations.</span>
+                            <span class="n">processor</span><span class="o">.</span><span class="na">getAggregatedResults</span><span class="o">().</span><span class="na">add</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+                        <span class="o">}</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="c1">// Recursively search in meta-annotations</span>
+        <span class="c1">// 如果根据类上直接定义的注解去找不到话，然后在遍历每一个注解，找寻其通过继承关系得到的注解</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">Annotation</span> <span class="n">annotation</span> <span class="o">:</span> <span class="n">annotations</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Class</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="n">Annotation</span><span class="o">&gt;</span> <span class="n">currentAnnotationType</span> <span class="o">=</span> <span class="n">annotation</span><span class="o">.</span><span class="na">annotationType</span><span class="o">();</span>
+            <span class="k">if</span> <span class="o">(!</span><span class="n">AnnotationUtils</span><span class="o">.</span><span class="na">isInJavaLangAnnotationPackage</span><span class="o">(</span><span class="n">currentAnnotationType</span><span class="o">))</span> <span class="o">{</span>
+                <span class="n">T</span> <span class="n">result</span> <span class="o">=</span> <span class="n">searchWithGetSemantics</span><span class="o">(</span><span class="n">currentAnnotationType</span><span class="o">,</span> <span class="n">annotationType</span><span class="o">,</span>
+                        <span class="n">annotationName</span><span class="o">,</span> <span class="n">containerType</span><span class="o">,</span> <span class="n">processor</span><span class="o">,</span> <span class="n">visited</span><span class="o">,</span> <span class="n">metaDepth</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">result</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">processor</span><span class="o">.</span><span class="na">postProcess</span><span class="o">(</span><span class="n">element</span><span class="o">,</span> <span class="n">annotation</span><span class="o">,</span> <span class="n">result</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">processor</span><span class="o">.</span><span class="na">aggregates</span><span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="n">metaDepth</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">processor</span><span class="o">.</span><span class="na">getAggregatedResults</span><span class="o">().</span><span class="na">add</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+                    <span class="o">}</span>
+                    <span class="k">else</span> <span class="o">{</span>
+                        <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="o">}</span>
+
+</code></pre></div></div>
+
+<p>拿我上面项目例子来说明，上面的代码我配置了@EnableAutoConfiguration和@SpringBootApplication两个注解，@SpringBootApplication里的exclude实际上使用的是@EnableAutoConfiguration里的exclude，所以当spring查找EnableAutoConfiguration这个注解的配置时候，根据上面spring代码可以知道，如果本地配置了，会优先取本地配置的，如果本地没有配置，才会通过第二个for循环，也就是从@SpringBootApplication里面去取，然后我项目代码也配置了@EnableAutoConfiguration，所以优先取本地配置，即在@SpringBootApplication配置的不会生效。<br />
+ 知道了这个结论之后，项目正常启动，改动就很简单了：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@EnableAutoConfiguration</span><span class="o">(</span><span class="n">exclude</span> <span class="o">=</span> <span class="o">{</span><span class="n">DataSourceAutoConfiguration</span><span class="o">.</span><span class="na">class</span><span class="o">})</span>
+<span class="nd">@SpringBootApplication</span>
+<span class="nd">@EnableDubbo</span><span class="o">(</span><span class="n">multipleConfig</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Application</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">new</span> <span class="nf">SpringApplicationBuilder</span><span class="o">(</span><span class="n">Application</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">profiles</span><span class="o">(</span><span class="s">"default"</span><span class="o">).</span><span class="na">build</span><span class="o">(</span><span class="n">args</span><span class="o">).</span><span class="na">run</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+</code></pre></div></div>
+
+<p>或者：<strong>（推荐使用这种方式）</strong></p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@SpringBootApplication</span><span class="o">(</span><span class="n">exclude</span> <span class="o">=</span> <span class="o">{</span><span class="n">DataSourceAutoConfiguration</span><span class="o">.</span><span class="na">class</span><span class="o">})</span>
+<span class="nd">@EnableDubbo</span><span class="o">(</span><span class="n">multipleConfig</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Application</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">new</span> <span class="nf">SpringApplicationBuilder</span><span class="o">(</span><span class="n">Application</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">profiles</span><span class="o">(</span><span class="s">"default"</span><span class="o">).</span><span class="na">build</span><span class="o">(</span><span class="n">args</span><span class="o">).</span><span class="na">run</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+</code></pre></div></div>
+
+<p><strong><em>总结</em></strong><br />
+– 通过查看上面spring代码方法注释也能得到结论，<strong>这个方法应该首先调用本地声明的注释然后用继承的注释，从而允许本地注解优先于继承的注解。</strong><br />
+– @SpringBootApplication是多个注解的组合，其中就已经包含了@EnableAutoConfiguration注解，所以引用了@SpringBootApplication注解之后不需要在手动注解@EnableAutoConfiguration</p>
