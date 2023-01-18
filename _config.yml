@@ -15,7 +15,7 @@ authors:
   Shuo:
     name: Shuo
     display_name: Shuo
-    avatar: 'assets/images/avatar.png'
+    avatar: 'assets/images/Shuo.png'
     email: wangshuoshuo45@qq.com
     web: https://codercoder.cn
     description: "I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together."
@@ -31,7 +31,7 @@ authors:
   rondon:
     name: rondon
     display_name: rondon    
-    avatar: 'assets/images/avatar.png'
+    avatar: 'assets/images/rondon.png'
     email: rondon@vip.qq.com
     web: https://codercoder.cn
     description: "I'm a Oracle DBA(Database Administrator)."
@@ -39,7 +39,7 @@ authors:
   Janvn:
     name: Janvn
     display_name: Janvn    
-    avatar: 'assets/images/avatar.png'
+    avatar: 'assets/images/Janvn.png'
     email: 287234973@qq.com
     web: https://codercoder.cn
     description: "I'm a Bigdata developer."
