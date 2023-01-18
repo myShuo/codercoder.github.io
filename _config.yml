@@ -7,7 +7,6 @@ favicon: 'assets/images/logo.png'
 baseurl: ''
 google_analytics: 'UA-46278016-1'
 disqus: 'demowebsite'
-# mailchimp-list: 'https://wowthemes.us11.list-manage.com/subscribe/post?u=8aeb20a530e124561927d3bd8&amp;id=8c3d2d214b'
 include: ["_pages"]
 permalink: /:title/
 
@@ -17,21 +16,33 @@ authors:
     name: Shuo
     display_name: Shuo
     avatar: 'assets/images/avatar.png'
-    # gravatar: e56154546cf4be74e393c62d1ae9f9d4
     email: wangshuoshuo45@qq.com
     web: https://codercoder.cn
     description: "I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together."
 
-  # john:
-  #   name: John
-  #   display_name: John    
-  #   avatar: 'assets/images/avatar.png'
-  #   gravatar: b1cc14991db7a456fcd761680bbc8f81
-  #   email: wowthemesnet@gmail.com
-  #   web: https://www.wowthemes.net
-  #   twitter: https://twitter.com/wowthemesnet
-  #   description: "This is the author box. Write a short description of the author here. You are currently previewing Mediumish demo, a Jekyll template compatible with Github pages."
+  Smile:
+    name: Smile
+    display_name: Smile    
+    avatar: 'assets/images/liyao.png'
+    email: 962205674@qq.com
+    web: https://codercoder.cn
+    description: "I'm a Java developer."
 
+  rondon:
+    name: rondon
+    display_name: rondon    
+    avatar: 'assets/images/avatar.png'
+    email: rondon@vip.qq.com
+    web: https://codercoder.cn
+    description: "I'm a Oracle DBA(Database Administrator)."
+
+  Janvn:
+    name: Janvn
+    display_name: Janvn    
+    avatar: 'assets/images/avatar.png'
+    email: 287234973@qq.com
+    web: https://codercoder.cn
+    description: "I'm a Bigdata developer."
 
 # Plugins
 plugins:
