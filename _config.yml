@@ -5,7 +5,7 @@ description: "DBA(Database Administrator), we can share and discuss MySQL, Mongo
 logo: 'assets/images/logo.png'
 favicon: 'assets/images/logo.png'
 baseurl: ''
-google_analytics: 'G-M7T9WZVF2S'
+google_analytics: 'G-7EV0TWCHZ8'
 disqus: 'demowebsite'
 include: ["_pages"]
 permalink: /:title/
