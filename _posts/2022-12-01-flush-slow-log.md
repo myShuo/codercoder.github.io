@@ -1,6 +1,6 @@
 ---
 id: 1198
-title: 'Redis ERR Protocol error: too big inline request'
+title: 'MySQL Flush Slow Log'
 date: '2022-12-01T18:34:40+08:00'
 author: Shuo
 excerpt: '慢查较多的时候，慢查日志需要进行定期切换，防止需要分析时，文件过大不便于排查。'

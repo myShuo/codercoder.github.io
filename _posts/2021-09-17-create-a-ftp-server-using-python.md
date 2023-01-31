@@ -1,6 +1,6 @@
 ---
 id: 1197
-title: 'Redis ERR Protocol error: too big inline request'
+title: 'Create a ftp-server using Python'
 date: '2021-09-17T18:34:40+08:00'
 author: Shuo
 excerpt: 在运维过程中，需要传输文件的时候，可以使用python命令，直接开启一个ftp服务的进程，网络通即可直接传输文件。
