@@ -3,7 +3,7 @@ id: 1194
 title: 'Redis集群中slave漂移的问题'
 date: '2021-12-24T18:34:40+08:00'
 author: Shuo
-excerpt: 在shutdown集群中某一个master的时候，集群中其它master的slave，会自动迁移到新的主上。
+excerpt: '在shutdown集群中某一个master的时候，集群中其它master的slave，会自动迁移到新的主上。'
 layout: post
 guid: 'http://codercoder.cn/?p=1194'
 image: http://codercoder.cn/wp-content/uploads/2021/12/2021-12-24-redis-replica-migration.png

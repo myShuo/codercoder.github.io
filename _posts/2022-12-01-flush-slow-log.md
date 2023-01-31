@@ -3,7 +3,7 @@ id: 1198
 title: 'Redis ERR Protocol error: too big inline request'
 date: '2022-12-01T18:34:40+08:00'
 author: Shuo
-excerpt: 慢查较多的时候，慢查日志需要进行定期切换，防止需要分析时，文件过大不便于排查。
+excerpt: '慢查较多的时候，慢查日志需要进行定期切换，防止需要分析时，文件过大不便于排查。'
 layout: post
 guid: 'http://codercoder.cn/?p=1198'
 permalink: /index.php/2022/12/2022-12-01-flush-slow-log

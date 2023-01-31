@@ -3,7 +3,7 @@ id: 1196
 title: 'Redis ERR Protocol error: too big inline request'
 date: '2021-09-24T18:34:40+08:00'
 author: Shuo
-excerpt: Redis ERR Protocol error: too big inline request
+excerpt: 'Redis ERR Protocol error: too big inline request'
 layout: post
 guid: 'http://codercoder.cn/?p=1196'
 permalink: /index.php/2021/09/2021-09-24-redis-too-big-inline-request
