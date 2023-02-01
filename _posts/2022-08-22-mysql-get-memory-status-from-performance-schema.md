@@ -54,4 +54,4 @@ mysql> select USER, EVENT_NAME, CURRENT_NUMBER_OF_BYTES_USED,SUM_NUMBER_OF_BYTES
 ```
 
 ## 附：MySQL内存使用拆分
-![](2022-08-22-mysql-get-memory-status-from-performance-schema.png)
+![](http://codercoder.cn/wp-content/uploads/2022/08/2022-08-22-mysql-get-memory-status-from-performance-schema.png)
