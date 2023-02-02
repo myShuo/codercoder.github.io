@@ -6,6 +6,7 @@ author: Shuo
 excerpt: '在redo logs中，如果有多个files，那么MySQL会怎么使用这些文件，访问的时间，第一个使用结束再使用第二个依次循环？还是不同的事务访问不同的file？'
 layout: post
 guid: 'http://codercoder.cn/?p=1203'
+image: http://codercoder.cn/wp-content/uploads/2022/12/2022-12-01-the-order-of-writing-redo-logs-1.png
 permalink: /index.php/2022/12/2022-12-01-the-order-of-writing-redo-logs
 categories:
     - Tech

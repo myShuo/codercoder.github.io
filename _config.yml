@@ -4,7 +4,7 @@ title: "codercoder"
 description: "DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together."
 logo: 'assets/images/logo.png'
 favicon: 'assets/images/logo.png'
-baseurl: ''
+baseurl: 'https://codercoder.cn'
 google_analytics: 'G-M7T9WZVF2S'
 disqus: 'demowebsite'
 include: ["_pages"]
