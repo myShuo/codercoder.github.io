@@ -24,6 +24,17 @@ comments: true
 <div class="col-md-4">
 
 <div class="sticky-top sticky-top-80">
+<h5>About Us</h5>
+
+<p><a href="mailto:wangshuoshuo45@qq.com">Shuo: wangshuoshuo45@qq.com</a></p>
+
+<p><a href="mailto:962205674@qq.com">Smile: 962205674@qq.com</a></p>
+
+<p><a href="mailto:rondon@vip.qq.com">rondon: rondon@vip.qq.com</a></p>
+
+<p><a href="mailto:287234973@qq.com">Janvn: 287234973@qq.com</a></p>
+
+
 <h5>Subscribe on Wechat</h5>
 
 <p>Thank you for your support! Get contact by Wechat. </p>

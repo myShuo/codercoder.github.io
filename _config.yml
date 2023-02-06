@@ -4,7 +4,7 @@ title: "codercoder"
 description: "DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together."
 logo: 'assets/images/logo.png'
 favicon: 'assets/images/logo.png'
-baseurl: 'https://codercoder.cn'
+baseurl: ''
 google_analytics: 'G-M7T9WZVF2S'
 disqus: 'demowebsite'
 include: ["_pages"]
@@ -17,7 +17,7 @@ authors:
     display_name: Shuo
     avatar: 'assets/images/Shuo.png'
     email: wangshuoshuo45@qq.com
-    web: https://codercoder.cn
+    web: https://codercoder.cn/about
     description: "I' a DBA(Database Administrator), we can share and discuss MySQL, MongoDB, Redis and other databases here, also including learning Python, Shell, Golang together."
 
   Smile:
@@ -25,7 +25,7 @@ authors:
     display_name: Smile    
     avatar: 'assets/images/liyao.png'
     email: 962205674@qq.com
-    web: https://codercoder.cn
+    web: https://codercoder.cn/about
     description: "I'm a Java developer."
 
   rondon:
@@ -33,7 +33,7 @@ authors:
     display_name: rondon    
     avatar: 'assets/images/rondon.png'
     email: rondon@vip.qq.com
-    web: https://codercoder.cn
+    web: https://codercoder.cn/about
     description: "I'm a Oracle DBA(Database Administrator)."
 
   Janvn:
@@ -41,7 +41,7 @@ authors:
     display_name: Janvn    
     avatar: 'assets/images/Janvn.png'
     email: 287234973@qq.com
-    web: https://codercoder.cn
+    web: https://codercoder.cn/about
     description: "I'm a Bigdata developer."
 
 # Plugins
