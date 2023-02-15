@@ -26,7 +26,7 @@ comments: true
 <div class="sticky-top sticky-top-80">
 <h5>About Us</h5>
 
-<p><a href="mailto:wangshuoshuo45@qq.com">Shuo: wangshuoshuo45@qq.com</a></p>
+<p><a href="https://www.linkedin.com/in/shuo-wang-b4557b102/">Shuo: Linkedin Page</a></p>
 
 <p><a href="mailto:962205674@qq.com">Smile: 962205674@qq.com</a></p>
 
