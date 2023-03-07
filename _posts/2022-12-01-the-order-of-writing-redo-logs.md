@@ -54,11 +54,16 @@ uint64_t log_files_real_offset_for_lsn(const log_t &log, lsn_t lsn) {
   return (log_files_real_offset(log, size_offset));
 }
 ```
+
 ![](http://codercoder.cn/wp-content/uploads/2022/12/2022-12-01-the-order-of-writing-redo-logs-1.png)
 
 # 三、相关配置的说明
 innodb_log_files_in_group
+
 * The number of log files in the log group. InnoDB writes to the files in a circular fashion. The default (and recommended) value is 2. The location of the files is specified by innodb_log_group_home_dir. The combined size of log files (innodb_log_file_size * innodb_log_files_in_group) can be up to 512GB.
+
 即：
 配置日志组中的日志个数，InnoDB以循环的方式写入文件。
 ![](http://codercoder.cn/wp-content/uploads/2022/12/2022-12-01-the-order-of-writing-redo-logs-2.png)
+
+并不是写满一个文件，再写另一个！
