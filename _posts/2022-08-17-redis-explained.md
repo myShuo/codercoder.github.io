@@ -17,4 +17,5 @@ tags:
 ---
 
 Redis Architecture
+参考：[Redis Explained](https://architecturenotes.co/redis/)
 ![](http://codercoder.cn/wp-content/uploads/2022/08/2022-08-17-redis-explained.png)

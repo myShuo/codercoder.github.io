@@ -1,21 +1,21 @@
 ---
 id: 1206
 title: 'MySQL源码-Seconds_Behind_Master的计算'
-date: '2023-02-01T18:34:40+08:00'
+date: '2023-01-18T18:34:40+08:00'
 author: Shuo
 excerpt: 'What the Seconds_Behind_Master means? And how to calculate it? MySQL源码-Seconds_Behind_Master的计算'
 layout: post
 guid: 'http://codercoder.cn/?p=1206'
-image: http://codercoder.cn/wp-content/uploads/2023/02/2023-02-01-mysql-source-code-Seconds_Behind_Master-1.png
-permalink: /index.php/2023/02/2023-02-01-mysql-source-code-Seconds_Behind_Master
+image: http://codercoder.cn/wp-content/uploads/2023/01/2023-01-18-mysql-source-code-Seconds_Behind_Master-2.png
+permalink: /index.php/2023/01/2023-01-18-mysql-source-code-Seconds_Behind_Master
 categories:
     - Tech
 tags:
-    - Linux
+    - MySQL
     - Tech
 ---
 # 一、目的
-Replication作为MySQL的通用高可用方案的基础，常常需要观察主从延迟，我们通常监测 **show slave status**中的“Seconds_Behind_Master”指标，获取主从延迟的时间，该参数具体是什么含义呢？
+Replication作为MySQL的通用高可用方案的基础，常常需要观察主从延迟，我们通常监测**show slave status**中的“Seconds_Behind_Master”指标，获取主从延迟的时间，该参数具体是什么含义呢？
 
 * 在业务中，若主库的写入较大，则可能会导致Seconds_Behind_Master的值很大；
 
@@ -30,7 +30,7 @@ Replication作为MySQL的通用高可用方案的基础，常常需要观察主�
 *.result,*.inc,*.test,*.opt,*.cnf,*.txt
 ```
 
-![a258428d992a6ebc9bc8b31f6c4a00d1.png](evernotecid://915E68F0-C519-4C3E-AC4E-9D856F84D8DF/appyinxiangcom/34337010/ENResource/p177)
+![](http://codercoder.cn/wp-content/uploads/2023/01/2023-01-18-mysql-source-code-Seconds_Behind_Master-1.png)
 
 ## 2、查看计算公式
 在sql->rpl_replica.cc文件中有如下的注释，为伪代码：
@@ -53,14 +53,15 @@ Replication作为MySQL的通用高可用方案的基础，常常需要观察主�
        print NULL;
   */
 ```
-![7e39b52050fdab9f006fc3c48c140f49.png](evernotecid://915E68F0-C519-4C3E-AC4E-9D856F84D8DF/appyinxiangcom/34337010/ENResource/p178)
+
+![](http://codercoder.cn/wp-content/uploads/2023/01/2023-01-18-mysql-source-code-Seconds_Behind_Master-2.png)
 即：
 * 若SQL线程是not running的状态，则返回NULL
 * 若SQL线程running + 已经处理完所有的relay log + IO线程running，则返回0；
 * 若SQL线程running + 已经处理完所有的relay log + IO线程not running，则返回NULL；
 * 若SQL线程running + 未处理完所有的relay log，则计算Seconds_Behind_Master；
 
-判断是否处理完所有的relay log：
+**判断是否处理完所有的relay log：**
 ```
 Check if SQL thread is at the end of relay log
        Checking should be done using two conditions
@@ -68,6 +69,7 @@ Check if SQL thread is at the end of relay log
        condition2: compare the file names (to handle rotation case)
 ```
 对比日志log positions和file names。
+
 
 真实计算代码：
 ```
@@ -96,6 +98,7 @@ Check if SQL thread is at the end of relay log
 
 ## 3、公式中的变量值
 ### (1) 获取clock_diff_with_master：
+
 ```
 The difference in seconds between the clock of the master and the clock of the slave (second - first). It must be signed as it may be <0 or >0.
 
@@ -104,6 +107,7 @@ clock_diff_with_master is computed when the I/O thread starts; for this the I/O 
 "how late the slave is compared to the master" is computed like this:
 clock_of_slave -  last_timestamp_executed_by_SQL_thread -  clock_diff_with_master
 ```
+
 在I/O线程启动时，会在master上执行`SELECT UNIX_TIMESTAMP()`，得到主库的时间戳。
 
 ## (2) last_master_timestamp
@@ -126,7 +130,6 @@ if ((!rli->is_parallel_exec() || rli->last_master_timestamp == 0) &&
       assert(rli->last_master_timestamp >= 0);
     }
 ```
-
 
 * last_master_timestamp = master上event开始时间 + 执行耗时
 
@@ -152,6 +155,15 @@ if ((!rli->is_parallel_exec() || rli->last_master_timestamp == 0) &&
   /* end-of "Coordinator::commit_positions" */
 
 ```
+
+**GAQ的含义：**
+```
+  /*
+    master-binlog ordered queue of Slave_job_group descriptors of groups that are under processing. The queue size is @c checkpoint_group.
+  */
+```
+
+## (3) 状态更新间隔
 * 更新间隔，在8.0中，新增参数：
 slave_checkpoint_period：毫秒
 
@@ -159,24 +171,20 @@ slave_checkpoint_period：毫秒
   the checkpoint routine is being called by the SQL Thread
 参考：[rpl_slave](https://github.com/mysql/mysql-server/blob/5.7/sql/rpl_slave.cc)
 
-**GAQ：**
-```
-  /*
-    master-binlog ordered queue of Slave_job_group descriptors of groups that are under processing. The queue size is @c checkpoint_group.
-  */
-```
 
+## (4) 部分异常状态值的说明
 sql->rpl_replica.cc
 ```
  /*
-        Apparently on some systems time_diff can be <0. Here are possible reasons related to MySQL:
-        - the master is itself a slave of another master whose time is ahead.
-        - somebody used an explicit SET TIMESTAMP on the master.
-        Possible reason related to granularity-to-second of time functions (nothing to do with MySQL), which can explain a value of -1:
-        assume the master's and slave's time are perfectly synchronized, and that at slave's connection time, when the master's timestamp is read, it is at the very end of second 1, and (a very short time later) when the slave's timestamp is read it is at the very  beginning of second 2. 
-        Then the recorded value for master is 1 and the recorded value for slave is 2. At SHOW REPLICA STATUS time, assume that the difference between timestamp of slave and rli->last_master_timestamp is 0
-        (i.e. they are in the same second), 
-        then we get 0-(2-1)=-1 as a result. This confuses users, so we don't go below 0: hence the max().
+Apparently on some systems time_diff can be <0. Here are possible reasons related to MySQL:
+    - the master is itself a slave of another master whose time is ahead.
+    - somebody used an explicit SET TIMESTAMP on the master.
+Possible reason related to granularity-to-second of time functions (nothing to do with MySQL), which can explain a value of -1:
+
+assume the master's and slave's time are perfectly synchronized, and that at slave's connection time, when the master's timestamp is read, it is at the very end of second 1, and (a very short time later) when the slave's timestamp is read it is at the very  beginning of second 2. 
+Then the recorded value for master is 1 and the recorded value for slave is 2. At SHOW REPLICA STATUS time, assume that the difference between timestamp of slave and rli->last_master_timestamp is 0
+(i.e. they are in the same second), 
+then we get 0-(2-1)=-1 as a result. This confuses users, so we don't go below 0: hence the max().
 
         last_master_timestamp == 0 (an "impossible" timestamp 1970) is a special marker to say "consider we have caught up".
       */
