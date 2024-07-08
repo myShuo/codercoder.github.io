@@ -3,7 +3,7 @@ id: 1205
 title: 'Linux swap 内存溢出'
 date: '2022-12-19T18:34:40+08:00'
 author: Shuo
-excerpt: '由于磁盘IO较弱的原因，不再在数据库的实例上进行swap的内存溢出，需要进行关闭。'
+excerpt: '由于磁盘IO较弱的原因，不再在数据库的实例上进行swap的内存溢出，需要进行关闭'
 layout: post
 guid: 'http://codercoder.cn/?p=1205'
 image: http://codercoder.cn/wp-content/uploads/2022/12/2022-12-19-linux-swap-2.png
