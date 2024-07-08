@@ -48,7 +48,7 @@ swapoff -a
 参考：[https://unix.stackexchange.com/questions/45673/how-can-swapoff-be-that-slow](https://unix.stackexchange.com/questions/45673/how-can-swapoff-be-that-slow)
 
 ## （3）调整/etc/fstab
-为避免重启后swap继续打开，需要关闭swap挂载：
+为避免重启后swap被继续打开，需要关闭swap挂载：
 ```
 vim /etc/fstab
 注释swap所在行
