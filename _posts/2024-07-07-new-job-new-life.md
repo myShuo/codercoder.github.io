@@ -1,4 +1,4 @@
- ---
+---
 id: 0707
 title: 'New Job and new life'
 date: '2024-07-07T23:23:40+08:00'
@@ -9,11 +9,12 @@ guid: 'http://codercoder.cn/?p=0707'
 image: http://codercoder.cn/wp-content/uploads/2024/0707.png
 permalink: /index.php/2024/07/2024-07-06-new-job-new-life
 categories:
-    - Shuo
     - LOL-7788
+    - Shuo
 tags:
     - LOL-7788
 ---
+
 # Hello 2024
 At the beginning of this year, during the Chinese lunar spring festival, I decided to change my job.
 There are a few reasons:
