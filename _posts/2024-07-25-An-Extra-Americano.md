@@ -22,8 +22,9 @@ This morning when I arrived at the company, I felt sleepy and wanted a cup of co
 
 Once I chatted with my friends about the hard-workers like us,  we said that people have to buy their own coffee to ensure focus on their work. It's hilarious and also the truth. And some company offer free coffee and the offices, it makes more sense~
 
-* Also some company turn their air conditions at 23~25 degree centigrade, to make more efficiency of staffs.
+[Also some company turn their air conditions at 23~25 degree centigrade, to make more efficiency of staffs.]
 
+![](http://codercoder.cn/wp-content/uploads/2024/20240725.jpg)
 
 
 # Workload balance
@@ -33,3 +34,5 @@ Like what we do for our physical health, we work very hard to earn money, many o
 So keeping a healthy work and rest balance is the most important thing during working life. After work, you can go swimming or something, even some of my colleagues bought a lifting desk that can make them stand up while working, it's a very good idea. 
 
 Workload balance is becoming the popular way to manage staff. Our company also gives us one day to work from home each week. The workplace is not the main reason to make progress, and maybe with more casual time and place, we can build another kind of work space.
+
+![](http://codercoder.cn/wp-content/uploads/2024/20240725-2.jpg)
